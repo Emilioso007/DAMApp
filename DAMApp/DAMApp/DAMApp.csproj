@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\DAMApp.Client\DAMApp.Client.csproj"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="wwwroot\Edit.css" />
+      <None Include="wwwroot\Overview.css" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,68 @@
+﻿@page "/dam/overview"
+@attribute [StreamRendering]
+@rendermode  InteractiveServer
+@inject NavigationManager NavigationManager
+
+<link rel="stylesheet" href="Overview.css" />
+
+<PageTitle>DAM Overview</PageTitle>
+
+    <div style="text-align: left">
+        <button @onclick="NavigateToHome"></button>
+    </div>
+
+    <h1>Image Gallery</h1>
+    <!-- Search bar -->
+    <input placeholder="Search by product name, id or image tag..."/>
+
+    <div class="gallery" id="imageGrid">
+        @foreach(Product product in products)
+        {
+            <div class="image-container" @onclick="@(e => OnImageClickNavigateTo(@product.ProductId))">
+                <img src="@product.Url" alt="Placeholder Image">
+                <p>@product.Name</p>
+            </div>   
+        }
+    </div>   
+
+
+@code {
+
+    private string searchText = ""; // Holds the search text
+    List<Product> products = new List<Product>();
+
+    protected override void OnInitialized ()
+    {
+        base.OnInitialized();
+        
+        mockProducts();
+    }
+    
+    public void mockProducts ()
+    {
+        products.Add(new Product
+        {
+            Name = "Hej",
+            Url = "https://www.proshop.dk/Images/300x251/3341477_6075a8fab720.jpg",
+            ProductId = "xxxx"
+        });
+    }
+
+    public void NavigateToHome ()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+    
+    public void OnImageClickNavigateTo(string productId)
+    {
+        NavigationManager.NavigateTo($"/edit?productId={productId}");
+    }
+
+    public class Product
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
+        public string ProductId { get; set; }
+    }
+}
+    
