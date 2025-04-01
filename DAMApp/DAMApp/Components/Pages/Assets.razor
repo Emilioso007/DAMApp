@@ -1,0 +1,135 @@
+@page "/dam/assets"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<style>
+    body {
+        text-align: center;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    .search-container {
+        margin-bottom: 20px;
+    }
+
+    {
+        width: 80%;
+        max-width: 400px;
+        padding: 10px;
+    font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .gallery {
+        margin: 10px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .gallery img {
+        width: 20vw;
+        height: 20vw;  /* Forces square scaling */
+    border-radius: 5px;
+    object-fit: cover;
+        border: 2px solid #000000;
+                                  padding: 1vw;
+    }
+</style>
+
+<PageTitle>Assets Overview</PageTitle>
+<div>
+    <h1>Assets Gallery</h1>
+    <InputText @bind-Value="searchText" placeholder="Search for assets"/>
+    <InputNumber @bind-Value="size">number of products to show</InputNumber>
+    <button @onclick="() => NavigateToPage(pageNumber+1)">Next Page</button>
+    <p>@pageNumber</p>
+    <button @onclick="() => NavigateToPage(pageNumber-1)">Previous page</button>
+</div>
+
+<div style="visibility: @(_isLoaded ? "visible" : "hidden")">
+    <div style="text-align: left">
+        <button @onclick="NavigateToHome">Back</button>
+    </div>
+
+    <h1>Product Gallery</h1>
+    <!-- Search bar -->
+    <input placeholder="Search by product name, id or image tag..."/>
+
+    <div class="gallery" id="imageGrid">
+        @foreach(string uuid in imageIds)
+        {
+            <div class="image-container" @onclick="@(e => SelectId(uuid))">
+                <img src='@Navigation.BaseUri+$"api/assets/GetImageByUUID?uuid={uuid}"' alt="Placeholder Image">
+                
+                <p>@($"{uuid}")</p>
+            </div>   
+        }
+    </div>  
+</div>
+
+@code {
+        private bool DEBUG = true;
+        private bool _isLoaded = false;
+
+        private string searchText = "";
+        private int size = 20;
+        private int pageNumber = 1;
+        private List<string> imageIds;
+        private HashSet<string> selectedImageIds;
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            
+            
+            if (firstRender)
+            {
+                await Task.Delay(100);
+                _isLoaded = true;
+                StateHasChanged();
+            }
+        }
+
+        public void SelectId(string uuid)
+        {
+            selectedImageIds.Add(uuid);
+        }
+        
+        protected override void OnInitialized ()
+        {
+            var uri = new Uri(Navigation.Uri);
+            var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+            if (queryParams.TryGetValue("page", out var pageNumString))
+                pageNumber = int.Parse(pageNumString);
+        }
+        
+        public void NavigateToHome ()
+        {
+            Navigation.NavigateTo("/", true);
+        }
+        
+        public void NavigateToPage (int pageNum)
+        {
+            Navigation.NavigateTo($"/dam/assets?page={pageNum}", true);
+        }
+        
+        #if !DEBUG
+        
+        private async Task GetImageIds()
+        {
+            imageIds = await Http.GetFromJsonAsync<List<string>>(
+                $"/imageIdPileFromSearch?size={size}&page={pageNumber}&searchquery={Uri.EscapeDataString(searchText)}"
+            );
+        }
+        
+        #endif
+
+}
+
+

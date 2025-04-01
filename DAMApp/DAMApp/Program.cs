@@ -12,6 +12,8 @@ public class Program
 		builder.Services.AddRazorComponents()
 			.AddInteractiveServerComponents()
 			.AddInteractiveWebAssemblyComponents();
+		
+		builder.Services.AddHttpClient();
 
 		var app = builder.Build();
 
