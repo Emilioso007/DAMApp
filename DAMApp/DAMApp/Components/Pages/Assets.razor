@@ -67,7 +67,7 @@
         <button @onclick="() => NavigateToPage(pageNumber - 1)">Previous page</button>
         <button @onclick="() => NavigateToPage(pageNumber + 1)">Next Page</button>
         <button @onclick="UpdateButton">Update</button>
-        <button @onlick="UploadImage">Upload a new image</button>
+        <InputFile OnChange="UploadImage" accept="image/*" />
     </div>
 
     <div style="text-align: left">
@@ -119,15 +119,45 @@
 
     private async Task UploadImage(InputFileChangeEventArgs e)
     {
+        // Select a file 
         var file = e.File;
 
         if (file != null)
-        {
+        {   
+            // Finding the datatype of the file
+            var datatype = file.ContentType;
             using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
             var bytes = ms.ToArray();
-            string ImageBase64 = Convert.ToBase64String(bytes);
+            string imageString = Convert.ToBase64String(bytes);
+            string dataUrl = $"data:{datatype};base64,{imageString}";
+            //Console.WriteLine(dataUrl);
+
+            // Make payload for uploading an image to the backend
+            var payload = new ImageUploadWithoutProduct
+            {
+                    Content = dataUrl
+            };
+
+            // Make a new HttpClient
+            using HttpClientHandler handler = new HttpClientHandler();
+            using HttpClient Http = new HttpClient(handler)
+            {
+                    BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+            };
+            // Post to the backend via HTTP
+            var response = await Http.PostAsJsonAsync("api/v1/assets/add", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Image uploaded successfully.");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error: {response.StatusCode} - {error}");
+            }
         }
     }
 
@@ -185,6 +215,11 @@
             Console.WriteLine(uuid);
         }
         
+    }
+
+    public class ImageUploadWithoutProduct
+    {
+        public string Content { get; set; }
     }
 
 }
