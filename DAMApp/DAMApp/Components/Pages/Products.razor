@@ -23,6 +23,7 @@
         font-size: 24px;
         border: 1px solid #ccc;
         border-radius: 5px;
+        box-sizing: border-box;
     }
 
     .gallery {
@@ -53,10 +54,10 @@
 
     <h1>Product Gallery</h1>
     <!-- Search bar -->
-    <input placeholder="Search by product name, id or image tag..."/>
+    <input class="form-control" @bind="searchProduct" @bind:event="oninput" placeholder="Search by product name, id or image tag..."/>
 
     <div class="gallery" id="imageGrid">
-        @foreach(Product product in products)
+        @foreach(Product product in FilteredProducts())
         {
             <div class="image-container" @onclick="@(e => OnImageClickNavigateTo(@product.ProductId))">
                 <img src="@product.Url" alt="Placeholder Image">
@@ -70,6 +71,8 @@
 
 
 @code {
+
+    private string searchProduct = ""; //variable that holds text in searchbar
 
     private bool _isLoaded = false;
     private string searchText = ""; // Holds the search text
@@ -157,6 +160,19 @@
     {
         NavigationManager.NavigateTo($"/dam/edit?productId={productId}");
     }
+    
+    
+    
+    private IEnumerable<Product> FilteredProducts()
+    {
+        if (string.IsNullOrWhiteSpace(searchProduct)) //if there is nothing in search product it search for all the products
+            return products;
+
+        return products.Where(products =>
+            (products.Name != null && products.Name.Contains(searchProduct, StringComparison.OrdinalIgnoreCase)) || //returns based on product name and product id
+            (products.ProductId != null && products.ProductId.Contains(searchProduct, StringComparison.OrdinalIgnoreCase)));
+    }
+
 
     public class Product
     {
