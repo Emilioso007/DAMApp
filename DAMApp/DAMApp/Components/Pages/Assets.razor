@@ -116,11 +116,19 @@
     {
         await GetImageIds();
     }
-    
-    public void UploadImage()
+
+    private async Task UploadImage(InputFileChangeEventArgs e)
     {
-        
-        
+        var file = e.File;
+
+        if (file != null)
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            string ImageBase64 = Convert.ToBase64String(bytes);
+        }
     }
 
     protected override async Task OnInitializedAsync()
