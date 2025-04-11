@@ -1,42 +1,113 @@
 ﻿@page "/dam/edit"
+@using DAMApp.Services
 @inject NavigationManager Navigation
 
+<style>
+    .gallery {
+        margin: 10px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .gallery img {
+        width: 20vw;
+        height: 20vw; /* Forces square scaling */
+        border-radius: 5px;
+        object-fit: cover;
+        border: 2px solid #000000;
+        padding: 1vw;
+        transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+    }
+    
+    .gallery img:hover{
+            : scale(1.05);
+    }
+</style>
+
 <head>
-    <link rel="stylesheet" href="Edit.css" />
+    <title>Edit</title>
 </head>
 
-<h1>Product Details</h1>
+<!-- Top section -->
+<section>
+    <h1>Product edit page</h1>
+    @if (productId != null)
+    {
+        <p><strong>Product ID:</strong> @productId</p>
+    }
+    else
+    {
+        <p>Product not found.</p>
+    }
+    
+</section>
 
-@if (productId != null)
-{
-    <p><strong>Product ID:</strong> @productId</p>
-}
-else
-{
-    <p>Product not found.</p>
-}
+<!-- The particular products images -->
+<section>
+    <h2>Product images</h2>
+    @foreach (string url in productImages)
+    {
+        <image src="@url"></image>
+    }
+</section>
+
+<!-- Image gallery with search option-->
+<section>
+    <div>
+        <h2>Image gallery</h2>
+
+        <div>
+            <h1>Assets Gallery</h1>
+            <InputText @bind-Value="searchText" placeholder="Search for assets"/>
+            <p>@pageNumber</p>
+            <button @onclick="() => NavigateToPage(pageNumber - 1)">Previous page</button>
+            <button @onclick="() => NavigateToPage(pageNumber + 1)">Next Page</button>
+            <button @onclick="SearchButton">Search</button>
+        </div>
+        
+        <div class="gallery" id="imageGrid">
+            @foreach (string src in imageSources)
+            {
+                <div>
+                    <img loading="lazy" src=@src alt="Placeholder Image"/>
+                </div>
+            }
+        </div>
+        
+    </div>
+</section>
 
 @code {
     private string? productId;
     private string? productName;
     private string? productUrl;
+    private int pageNumber;
+    private string searchText;
 
-    protected override void OnInitialized ()
+    private List<string>? productImages = new();
+    private List<string>? imageSources = new();
+        
+    protected override async Task OnInitializedAsync ()
     {
         var uri = new Uri(Navigation.Uri);
         var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
         if (queryParams.TryGetValue("productId", out var id))
             productId = id;
-    }
 
-    public List<Image> GetImagesFromDb ()
-    {
-        return null;
+            // productImages = await ImageService.GetImagesByProduct(productId); 
+            
+            imageSources = await ImageService.GetImageSource(20, pageNumber, searchText);
     }
     
-    public class Image ()
+    public async Task SearchButton()
     {
-        
+        imageSources = await ImageService.GetImageSource(20, pageNumber, searchText);
+    }
+    
+    public void NavigateToPage(int pageNum)
+    {
+        Navigation.NavigateTo($"/dam/assets?Page={pageNum}", true);
     }
 }
