@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\DAMApp.Client\DAMApp.Client.csproj"/>
+        <PackageReference Include="BlazorSortableList" Version="2.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0"/>
     </ItemGroup>
 
