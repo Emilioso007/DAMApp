@@ -1,27 +1,36 @@
 ﻿@page "/dam/edit"
 @using DAMApp.Services
 @inject NavigationManager Navigation
+@attribute [StreamRendering]
+@rendermode  InteractiveServer
+@using BlazorSortableList
+
 
 <style>
     .gallery {
         margin: 10px;
         display: grid;
         gap: 10px;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
 
-    .gallery img {
-        width: 20vw;
-        height: 20vw; /* Forces square scaling */
+    .gallery img,
+    .img_in_gallery img {
+        width: 100%;
+        aspect-ratio: 1 / 1; /* Keeps the image square */
         border-radius: 5px;
         object-fit: cover;
         border: 2px solid #000000;
         padding: 1vw;
-        transition: opacity 1s ease-in-out, transform 1s ease-in-out;
     }
-    
-    .gallery img:hover{
-            : scale(1.05);
+
+    .img_in_gallery {
+        padding: 5px;
+        box-sizing: border-box;
+    }
+
+    .gallery img:hover {
+        transform: scale(1.05);
     }
 </style>
 
@@ -44,37 +53,46 @@
 </section>
 
 <!-- The particular products images -->
+<!-- For Product Images -->
 <section>
     <h2>Product images</h2>
-    @foreach (string url in productImages)
-    {
-        <image src="@url"></image>
-    }
+    <div class="gallery">
+        <SortableList Group="sharedLists" Items="productImages" Context="asset" 
+                      OnRemove="ProductImageRemove" OnUpdate="ProductImageReorder">
+            <SortableItemTemplate>
+                <div class="card has-border has-background-white img_in_gallery">
+                    <img src="@asset.Url" alt="image of something"/>
+                    <p>@asset.ImageId</p>
+                </div>
+            </SortableItemTemplate>
+        </SortableList>
+    </div>
 </section>
 
-<!-- Image gallery with search option-->
+<!-- For Gallery -->
 <section>
     <div>
         <h2>Image gallery</h2>
 
         <div>
-            <h1>Assets Gallery</h1>
             <InputText @bind-Value="searchText" placeholder="Search for assets"/>
             <p>@pageNumber</p>
             <button @onclick="() => NavigateToPage(pageNumber - 1)">Previous page</button>
             <button @onclick="() => NavigateToPage(pageNumber + 1)">Next Page</button>
             <button @onclick="SearchButton">Search</button>
         </div>
-        
-        <div class="gallery" id="imageGrid">
-            @foreach (string src in imageSources)
-            {
-                <div>
-                    <img loading="lazy" src=@src alt="Placeholder Image"/>
-                </div>
-            }
+
+        <div class="gallery">
+            <SortableList Group="sharedLists" Items="gallery" Context="asset" 
+                          OnRemove="GalleryRemove" OnUpdate="GalleryReorder">
+                <SortableItemTemplate>
+                    <div class="card has-border has-background-white img_in_gallery">
+                        <img src="@asset.Url"/>
+                        <p>@asset.ImageId</p>
+                    </div>
+                </SortableItemTemplate>
+            </SortableList>
         </div>
-        
     </div>
 </section>
 
@@ -82,11 +100,11 @@
     private string? productId;
     private string? productName;
     private string? productUrl;
-    private int pageNumber;
-    private string searchText;
+    private int pageNumber = 1;
+    private string searchText = "";
 
-    private List<string>? productImages = new();
-    private List<string>? imageSources = new();
+    private List<ImageItem>? productImages = new();
+    private List<ImageItem>? gallery = new();
         
     protected override async Task OnInitializedAsync ()
     {
@@ -95,19 +113,100 @@
 
         if (queryParams.TryGetValue("productId", out var id))
             productId = id;
-
-            // productImages = await ImageService.GetImagesByProduct(productId); 
-            
-            imageSources = await ImageService.GetImageSource(20, pageNumber, searchText);
+        
+             List<string> imageIds = await ImageService.GetImagesByProduct(productId); 
+             foreach (string imgId in imageIds)
+             {
+                 productImages.Add(new ImageItem()
+                 {
+                     ImageId = imgId
+                 });
+             }
+             
+            List<string> ids = await ImageService.GetImageIds(20, pageNumber, searchText);
+            foreach (string imgid in ids)
+            {
+                gallery.Add(new ImageItem()
+                {
+                    ImageId = imgid
+                });
+            }
     }
     
     public async Task SearchButton()
     {
-        imageSources = await ImageService.GetImageSource(20, pageNumber, searchText);
+        List<string> ids = await ImageService.GetImageIds(20, pageNumber, searchText);
+        foreach (string id in ids)
+        {
+            gallery.Add(new ImageItem()
+            {
+                ImageId = id
+            });
+        }
     }
     
     public void NavigateToPage(int pageNum)
     {
         Navigation.NavigateTo($"/dam/assets?Page={pageNum}", true);
+    }
+    
+    private void ProductImageRemove((int oldIndex, int newIndex) indices)
+    {
+        // get the item at the old index in list 1
+        var item = productImages[indices.oldIndex];
+
+        // add it to the new index in list 2
+        gallery.Insert(indices.newIndex, item);
+
+        // remove the item from the old index in list 1
+        productImages.Remove(productImages[indices.oldIndex]);
+    }
+
+    private void GalleryRemove((int oldIndex, int newIndex) indices)
+    {
+        // get the item at the old index in list 2
+        var item = gallery[indices.oldIndex];
+
+        // add it to the new index in list 1
+        productImages.Insert(indices.newIndex, item);
+
+        // remove the item from the old index in list 2
+        gallery.Remove(gallery[indices.oldIndex]);
+    }
+    
+    private void ProductImageReorder((int oldIndex, int newIndex) indices)
+    {
+        // Get the item being moved
+        var item = productImages[indices.oldIndex];
+    
+        // Remove from old position
+        productImages.RemoveAt(indices.oldIndex);
+    
+        // Insert at new position
+        productImages.Insert(indices.newIndex, item);
+    }
+
+    private void GalleryReorder((int oldIndex, int newIndex) indices)
+    {
+        // Get the item being moved
+        var item = gallery[indices.oldIndex];
+    
+        // Remove from old position
+        gallery.RemoveAt(indices.oldIndex);
+    
+        // Insert at new position
+        gallery.Insert(indices.newIndex, item);
+    }
+    
+    class ImageItem
+    {
+        public string ImageId { get; set; }
+        public string Url
+        {
+            get
+            {
+                return "http://localhost:5115/api/v1/assets/GetImageByUUID?uuid="+ImageId;
+            }
+        }
     }
 }

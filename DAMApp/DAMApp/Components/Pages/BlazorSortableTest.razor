@@ -26,7 +26,7 @@
 
 @code
 {
-    List<Item> items1, items2;
+    List<ImageItem> items1, items2;
 
     protected override void OnInitialized ()
     {
@@ -34,7 +34,7 @@
 
         for (int i = 1 ; i <= 10 ; i++)
         {
-            items1.Add(new Item()
+            items1.Add(new ImageItem()
             {
                 Name = ("Item #" + i)
             });
@@ -44,7 +44,7 @@
 
         for (int i = 11 ; i <= 20 ; i++)
         {
-            items2.Add(new Item()
+            items2.Add(new ImageItem()
             {
                 Name = ("Item #" + i)
             });
@@ -100,8 +100,9 @@
         items2.Insert(indices.newIndex, item);
     }
 
-    class Item
+    class ImageItem
     {
+        public string ImageId { get; set; }
         public string Name { get; set; }
     }
 }

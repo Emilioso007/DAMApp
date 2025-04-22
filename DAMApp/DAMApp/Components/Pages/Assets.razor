@@ -54,6 +54,15 @@
     .gallery img:hover{
         transform: scale(1.05);
     }
+
+    .tag-menu {
+        padding: 1rem;
+        border: 1px solid #ccc;
+        background-color: #f8f8f8;
+        border-radius: 5px;
+        margin-top: 10px;
+        max-width: 300px;
+    }
     
 </style>
 
@@ -88,12 +97,33 @@
     </div>
 </div>
 
+<button @onclick="ToggleTagMenu">Select Tags</button> 
+
+@if (showTagMenu)
+{
+<div class="tag-menu">
+    <h4>Filter with Tags</h4>
+    @foreach (var tag in allTags)
+    {
+    <label style="display: block;">
+        <input type="checkbox"
+               checked="@selectedTags.Contains(tag)"
+               @onchange="(e) => OnTagFilterChanged(tag, (bool?)e.Value == true)"
+        />
+        @tag
+    </label>
+    }
+
+    <button @onclick="ApplyFilter">Apply Filter</button>
+</div>
+}
+
 @code {
     private bool DEBUG = true;
     private bool _isLoaded = false;
 
     private string searchText = "";
-    private int size = 20;
+    private int size = 20; 
     private int pageNumber = 1;
     private List<string> imageSources = new();
     private HashSet<string> selectedImageIds = new HashSet<string>();
@@ -129,6 +159,9 @@
             pageNumber = int.Parse(pageNumString);
 
         imageSources = await ImageService.GetImageSource(size, pageNumber, searchText);
+        allTags = await ImageService.GetTags(); //henter tags 
+        
+        
     }
 
     public void NavigateToHome()
@@ -145,6 +178,27 @@
     {
         public string Content { get; set; }
     }
+    
+    private bool showTagMenu = false;
+    private List<string> allTags = new();
+    private HashSet<string> selectedTags = new(); 
 
+    public void ToggleTagMenu()
+    {
+        showTagMenu = !showTagMenu;
+    }
+
+    public void OnTagFilterChanged(string tag, bool isChecked)
+    {
+        if (isChecked)
+            selectedTags.Add(tag);
+        else
+            selectedTags.Remove(tag);
+    }
+
+    public void ApplyFilter ()
+    {
+        throw new NotImplementedException();
+    }
 }
 
