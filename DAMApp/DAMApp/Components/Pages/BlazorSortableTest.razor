@@ -4,9 +4,10 @@
 @inject NavigationManager NavigationManager
 @using BlazorSortableList
 
-<SortableList Group="sharedLists" Items="items1" Context="item" OnRemove="ListOneRemove">
+<SortableList Group="sharedLists" Items="items1" Context="item" 
+              OnRemove="ListOneRemove" OnUpdate="ListOneReorder">
     <SortableItemTemplate>
-        <div class=" card has-border has-background-white">
+        <div class="card has-border has-background-white">
             <p class="is-size-4 p-2 ml-4">@item.Name</p>
         </div>
     </SortableItemTemplate>
@@ -14,7 +15,8 @@
 
 <br/>
 
-<SortableList Group="sharedLists" OnRemove="ListTwoRemove" Items="items2" Context="item">
+<SortableList Group="sharedLists" Items="items2" Context="item" 
+              OnRemove="ListTwoRemove" OnUpdate="ListTwoReorder">
     <SortableItemTemplate>
         <div class="card has-background-white has-border">
             <p class="is-size-4 p-2 ml-4">@item.Name</p>
@@ -72,6 +74,30 @@
 
         // remove the item from the old index in list 2
         items2.Remove(items2[indices.oldIndex]);
+    }
+    
+    private void ListOneReorder((int oldIndex, int newIndex) indices)
+    {
+        // Get the item being moved
+        var item = items1[indices.oldIndex];
+    
+        // Remove from old position
+        items1.RemoveAt(indices.oldIndex);
+    
+        // Insert at new position
+        items1.Insert(indices.newIndex, item);
+    }
+
+    private void ListTwoReorder((int oldIndex, int newIndex) indices)
+    {
+        // Get the item being moved
+        var item = items2[indices.oldIndex];
+    
+        // Remove from old position
+        items2.RemoveAt(indices.oldIndex);
+    
+        // Insert at new position
+        items2.Insert(indices.newIndex, item);
     }
 
     class Item
