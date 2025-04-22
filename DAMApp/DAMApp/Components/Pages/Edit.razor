@@ -150,7 +150,7 @@
         Navigation.NavigateTo($"/dam/assets?Page={pageNum}", true);
     }
     
-    private void ProductImageRemove((int oldIndex, int newIndex) indices)
+    private async Task ProductImageRemove((int oldIndex, int newIndex) indices)
     {
         // get the item at the old index in list 1
         var item = productImages[indices.oldIndex];
@@ -158,23 +158,26 @@
         // add it to the new index in list 2
         gallery.Insert(indices.newIndex, item);
 
+        await ImageService.RemoveImageFromProduct(productId, productImages[indices.oldIndex].ImageId);
+        
         // remove the item from the old index in list 1
         productImages.Remove(productImages[indices.oldIndex]);
     }
 
-    private void GalleryRemove((int oldIndex, int newIndex) indices)
+    private async Task GalleryRemove((int oldIndex, int newIndex) indices)
     {
         // get the item at the old index in list 2
         var item = gallery[indices.oldIndex];
 
         // add it to the new index in list 1
         productImages.Insert(indices.newIndex, item);
-
-        // remove the item from the old index in list 2
+        
+        await ImageService.AddImageToProduct(productId, item.ImageId, indices.newIndex.ToString());
+       // remove the item from the old index in list 2
         gallery.Remove(gallery[indices.oldIndex]);
     }
     
-    private void ProductImageReorder((int oldIndex, int newIndex) indices)
+    private async Task ProductImageReorder((int oldIndex, int newIndex) indices)
     {
         // Get the item being moved
         var item = productImages[indices.oldIndex];
@@ -184,6 +187,8 @@
     
         // Insert at new position
         productImages.Insert(indices.newIndex, item);
+
+        await ImageService.UpdatePriority(productId, item.ImageId, indices.newIndex);
     }
 
     private void GalleryReorder((int oldIndex, int newIndex) indices)
@@ -193,7 +198,7 @@
     
         // Remove from old position
         gallery.RemoveAt(indices.oldIndex);
-    
+        
         // Insert at new position
         gallery.Insert(indices.newIndex, item);
     }

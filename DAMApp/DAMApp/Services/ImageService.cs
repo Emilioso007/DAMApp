@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using DAMApp.Components.Pages;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.VisualBasic;
@@ -124,9 +125,9 @@ public static class ImageService
 		return ImagesByProduct;
 	}
 	
-	public static async Task<List<string>> GetTags()
+	public static async Task<List<Tag>> GetTags()
 	{
-		List<string> tags = new List<string>();
+		List<Tag> tags = new List<Tag>();
 
 		try
 		{
@@ -137,7 +138,7 @@ public static class ImageService
 			};
 
 			string apiUrl = "api/v1/assets/tags";
-			tags = await Http.GetFromJsonAsync<List<string>>(apiUrl);
+			tags = await Http.GetFromJsonAsync<List<Tag>>(apiUrl);
 		}
 		catch (Exception ex)
 		{
@@ -147,11 +148,31 @@ public static class ImageService
 		return tags;
 	}
 	
-	public static async Task UpdatePriority()
+	public class Tag
+    {
+        public Guid UUID { get; set; }
+        public string Name { get; set; }
+        public bool isAddedByUser { get; set; }
+    }
+
+	class UpdateImageRequest
 	{
-		var payload = new Assets.ImageUploadWithoutProduct
+		public string op { get; set; }
+		public string path { get; set; }
+		public int priority { get; set; }
+		
+	}
+	
+	public static async Task UpdatePriority(string productId, string imageId, int newPriority)
+	{
+		var patchDoc = new[]
 		{
-			//Content = dataUrl
+			new
+			{
+				op = "replace",
+				path = "/priority",
+				value = newPriority
+			}
 		};
 
 		// Make a new HttpClient
@@ -161,18 +182,15 @@ public static class ImageService
 			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
 		};
 		// Post to the backend via HTTP
-		var response = await Http.PostAsJsonAsync("api/v1/assets/add", payload);
+		var response = await Http.PatchAsJsonAsync($"api/v1/assets/{productId}/{imageId}", patchDoc);
 
-		if (response.IsSuccessStatusCode)
-		{
+		if (response.IsSuccessStatusCode) {
 			Console.WriteLine("Image uploaded successfully.");
-		}
-		else
-		{
+		} 
+		else {
 			var error = await response.Content.ReadAsStringAsync();
 			Console.WriteLine($"Error: {response.StatusCode} - {error}");
 		}
-
 	}
 
 	class GetProductAssetsIdsResponse {
@@ -182,6 +200,68 @@ public static class ImageService
 		public GetProductAssetsIdsResponse(List<Guid> imageIds)
 		{
 			ImageIds = imageIds;
+		}
+	}
+	
+	public class AddProductImageRequest
+	{
+		public string ImageId { get; set; }
+		public string Priority { get; set; }
+	}
+	
+	public static async Task AddImageToProduct(string productId, string imageId, string newPriority)
+	{
+		var payload = new AddProductImageRequest()
+		{
+			ImageId = imageId,
+			Priority = newPriority
+		};
+
+		// Make a new HttpClient
+		using HttpClientHandler handler = new HttpClientHandler();
+		using HttpClient Http = new HttpClient(handler)
+		{
+			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+		};
+		// Post to the backend via HTTP
+		var response = await Http.PostAsJsonAsync($"api/v1/assets/{productId}/add", payload);
+
+		if (response.IsSuccessStatusCode) {
+			Console.WriteLine("Image uploaded to product successfully.");
+		} 
+		else {
+			var error = await response.Content.ReadAsStringAsync();
+			Console.WriteLine($"Error: {response.StatusCode} - {error}");
+		}
+	}
+	
+	public class RemoveProductImageRequest
+	{
+		public string ImageId { get; set; }
+	}
+	
+	public static async Task RemoveImageFromProduct(string productId, string imageId)
+	{
+		var payload = new RemoveProductImageRequest()
+		{
+			ImageId = imageId,
+		};
+
+		// Make a new HttpClient
+		using HttpClientHandler handler = new HttpClientHandler();
+		using HttpClient Http = new HttpClient(handler)
+		{
+			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+		};
+		// Post to the backend via HTTP
+		var response = await Http.PostAsJsonAsync($"api/v1/assets/{productId}/remove", payload);
+
+		if (response.IsSuccessStatusCode) {
+			Console.WriteLine("Image removed from product successfully.");
+		} 
+		else {
+			var error = await response.Content.ReadAsStringAsync();
+			Console.WriteLine($"Error: {response.StatusCode} - {error}");
 		}
 	}
 }
