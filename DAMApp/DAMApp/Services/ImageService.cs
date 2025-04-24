@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using DAMApp.Components.Pages;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.VisualBasic;
+using DAMApp.Models;
 
 namespace DAMApp.Services;
 
@@ -147,13 +148,37 @@ public static class ImageService
 
 		return tags;
 	}
+
+	public static async Task<List<string>> GetImagesByTags(List<string> selectedTags)
+	{
+		List<string> imageSources = new List<string>();
+
+		try
+		{
+			HttpClientHandler handler = new HttpClientHandler();
+			HttpClient Http = new HttpClient(handler)
+			{
+				BaseAddress = new Uri("http://localhost:5115/") 
+			};
+
+			string tagQuery = string.Join(",", selectedTags);
+			string apiUrl = $"api/v1/assets/byTags?tags={tagQuery}";
+
+			List<string> imageIds = await Http.GetFromJsonAsync<List<string>>(apiUrl);
+
+			foreach (string id in imageIds)
+			{
+				imageSources.Add($"http://localhost:5115/api/v1/assets/GetImageByUUID?uuid={id}");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error loading images by tags: {ex.Message}");
+		}
+
+		return imageSources;
+	}
 	
-	public class Tag
-    {
-        public Guid UUID { get; set; }
-        public string Name { get; set; }
-        public bool isAddedByUser { get; set; }
-    }
 
 	class UpdateImageRequest
 	{
