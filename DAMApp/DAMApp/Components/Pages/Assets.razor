@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Net.Http.Json
 @using DAMApp.Services
+@using DAMApp.Models;
 
 <style>
     body {
@@ -107,12 +108,12 @@
     {
     <label style="display: block;">
         <input type="checkbox"
-               checked="@selectedTags.Contains(tag)"
-               @onchange="(e) => OnTagFilterChanged(tag, (bool?)e.Value == true)"
-        />
-        @tag
+               checked="@selectedTags.Contains(tag.Name)"
+               @onchange="(e) => OnTagFilterChanged(tag.Name, (bool?)e.Value == true)" />
+        @tag.Name
     </label>
     }
+
 
     <button @onclick="ApplyFilter">Apply Filter</button>
 </div>
@@ -159,7 +160,7 @@
             pageNumber = int.Parse(pageNumString);
 
         imageSources = await ImageService.GetImageSource(size, pageNumber, searchText);
-        //allTags = await ImageService.GetTags(); //henter tags 
+        allTags = await ImageService.GetTags(); //henter tags 
         
         
     }
@@ -180,7 +181,7 @@
     }
     
     private bool showTagMenu = false;
-    private List<string> allTags = new();
+    private List<Tag> allTags = new();
     private HashSet<string> selectedTags = new(); 
 
     public void ToggleTagMenu()
@@ -196,9 +197,10 @@
             selectedTags.Remove(tag);
     }
 
-    public void ApplyFilter ()
+    public async void ApplyFilter()
     {
-        throw new NotImplementedException();
+        imageSources = await ImageService.GetImagesByTags(selectedTags.ToList());
+        StateHasChanged();
     }
 }
 
