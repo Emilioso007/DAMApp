@@ -4,7 +4,8 @@
 @inject NavigationManager Navigation
 @using DAMApp.Models
 @using DAMApp.Services
-@inject ImageService ImageService
+@inject CreateService CreateService
+@inject ReadService ReadService
 
 <style>
     body {
@@ -81,7 +82,7 @@
         <button @onclick="() => NavigateToPage(pageNumber - 1)">Previous page</button>
         <button @onclick="() => NavigateToPage(pageNumber + 1)">Next Page</button>
         <button @onclick="SearchButton">Search</button>
-        <InputFile OnChange="ImageService.UploadImage" accept="image/*" />
+        <InputFile OnChange="CreateService.UploadImage" accept="image/*" />
     </div>
 
     
@@ -145,7 +146,7 @@
 
     public async Task SearchButton()
     {
-        imageSources = await ImageService.GetImageSource(size, pageNumber, searchText);
+        imageSources = await ReadService.GetImageSource(size, pageNumber, searchText);
     }
     
     public void OnImageClickNavigateTo(string imageId)
@@ -163,8 +164,8 @@
         if (queryParams.TryGetValue("Page", out var pageNumString))
             pageNumber = int.Parse(pageNumString);
 
-        imageSources = await ImageService.GetImageSource(size, pageNumber, searchText);
-        allTags = await ImageService.GetTags(); //henter tags 
+        imageSources = await ReadService.GetImageSource(size, pageNumber, searchText);
+        allTags = await ReadService.GetTags(); //henter tags 
         
         
     }
@@ -198,7 +199,7 @@
 
     public async void ApplyFilter()
     {
-        imageSources = await ImageService.GetImagesByTags(selectedTags.ToList());
+        imageSources = await ReadService.GetImagesByTags(selectedTags.ToList());
         StateHasChanged();
     }
 }

@@ -15,7 +15,11 @@ public class Program
 			.AddInteractiveWebAssemblyComponents();
 		
 		builder.Services.AddHttpClient();
-		builder.Services.AddScoped<ImageService>();
+		
+		builder.Services.AddScoped<CreateService>();
+		builder.Services.AddScoped<ReadService>();
+		builder.Services.AddScoped<UpdateService>();
+		builder.Services.AddScoped<DeleteService>();
 
 		var app = builder.Build();
 

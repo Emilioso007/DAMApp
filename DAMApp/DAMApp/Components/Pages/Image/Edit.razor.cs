@@ -7,8 +7,6 @@ public partial class Edit : ComponentBase
 {
 
 	[Inject] private NavigationManager Navigation { get; set; }
-
-	[Inject] private ImageService ImageService { get; set; }
 	
 	private string _imageId = "";
     private string _searchText = "";
@@ -24,9 +22,9 @@ public partial class Edit : ComponentBase
         if (queryParams.TryGetValue("imageId", out var id))
             _imageId = id;
 
-        _imageTags = await ImageService.GetTagsByImage(new Guid(_imageId));
+        _imageTags = await ReadService.GetTagsByImage(new Guid(_imageId));
 
-        _list = await ImageService.GetTagsNotOnImage(new Guid(_imageId));
+        _list = await ReadService.GetTagsNotOnImage(new Guid(_imageId));
         
     }
     
@@ -43,7 +41,7 @@ public partial class Edit : ComponentBase
         // add it to the new index in list 2
         _list.Insert(indices.newIndex, item);
 
-        await ImageService.RemoveTagFromImage(_imageId, _imageTags[indices.oldIndex].UUID.ToString());
+        await DeleteService.RemoveTagFromImage(_imageId, _imageTags[indices.oldIndex].UUID.ToString());
         
         // remove the item from the old index in list 1
         _imageTags.Remove(_imageTags[indices.oldIndex]);
@@ -57,7 +55,7 @@ public partial class Edit : ComponentBase
         // add it to the new index in list 1
         _imageTags.Insert(indices.newIndex, item);
         
-        await ImageService.AddTagToImage(_imageId, item);
+        await CreateService.AddTagToImage(_imageId, item);
        // remove the item from the old index in list 2
        _list.Remove(_list[indices.oldIndex]);
     }

@@ -2,6 +2,11 @@
 @attribute [StreamRendering]
 @rendermode  InteractiveServer
 @using BlazorSortableList
+@using DAMApp.Services
+@inject CreateService CreateService
+@inject ReadService ReadService
+@inject UpdateService UpdateService
+@inject DeleteService DeleteService
 
 <style>
     .gallery {
