@@ -24,7 +24,7 @@ public class ImageService
 		//Console.WriteLine(dataUrl);
 
 		// Make payload for uploading an image to the backend
-		var payload = new Assets.ImageUploadWithoutProduct
+		var payload = new ImageUpload()
 		{
 			Content = dataUrl
 		};
@@ -96,6 +96,12 @@ public class ImageService
 		}
 		return imageSources;
 	}
+	
+	public async Task<string> GetImageSourceById(string id)
+	{
+		string imageSources = imageSources = ("http://localhost:5115/api/v1/assets/GetImageByUUID?uuid="+id);
+		return imageSources;
+	}
 
 	public async Task<List<string>> GetImagesByProduct(string productId)
 	{
@@ -154,6 +160,10 @@ public class ImageService
 		return uuids;
 	}
 	
+	/// <summary>
+	/// Returns all tags in database
+	/// </summary>
+	/// <returns></returns>
 	public async Task<List<Tag>> GetTags()
 	{
 		List<Tag> tags = new List<Tag>();
@@ -177,6 +187,12 @@ public class ImageService
 		return tags;
 	}
 
+	
+	/// <summary>
+	/// returns images by their tags
+	/// </summary>
+	/// <param name="selectedTags"></param>
+	/// <returns></returns>
 	public static async Task<List<string>> GetImagesByTags(List<string> selectedTags)
 	{
 		List<string> imageSources = new List<string>();
@@ -348,6 +364,168 @@ public class ImageService
 		{
 			Console.WriteLine($"Error in GetProductName: {ex.GetType().Name}: {ex.Message}");
 			return "name not found";
+		}
+	}
+
+	public async Task<List<Tag>> GetTagsByImage (Guid imageUUID)
+	{
+		try
+		{
+			string apiUrl = $"api/v1/tag?imageId={imageUUID}";
+        
+			HttpClientHandler handler = new HttpClientHandler();
+			HttpClient Http = new HttpClient(handler)
+			{
+				BaseAddress = new Uri("http://localhost:5115/")
+			};
+			
+			var response = await Http.GetFromJsonAsync<List<Tag>>(apiUrl);
+        
+			if (response != null)
+			{
+				return response;
+			}
+        
+			return [];
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error in GetTagsByImage: {ex.GetType().Name}: {ex.Message}");
+			return [];
+		}
+	}
+	
+	public async Task<List<Tag>> GetTagsNotOnImage (Guid imageUUID)
+	{
+		try
+		{
+			string apiUrl = $"api/v1/tag/exclude?imageId={imageUUID}";
+        
+			HttpClientHandler handler = new HttpClientHandler();
+			HttpClient Http = new HttpClient(handler)
+			{
+				BaseAddress = new Uri("http://localhost:5115/")
+			};
+			
+			var response = await Http.GetFromJsonAsync<List<Tag>>(apiUrl);
+        
+			if (response != null)
+			{
+				return response;
+			}
+        
+			return [];
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error in GetTagsNotOnImage: {ex.GetType().Name}: {ex.Message}");
+			return [];
+		}
+	}
+
+	public async Task RemoveTagFromImage(string imageId, string tagUUID)
+	{
+		try
+		{
+			// Make a new HttpClient
+			using HttpClientHandler handler = new HttpClientHandler();
+			using HttpClient Http = new HttpClient(handler)
+			{
+				BaseAddress = new Uri("http://localhost:5115/") // Base URL
+			};
+        
+			// Send DELETE request to the backend API
+			var response = await Http.DeleteAsync($"api/v1/tag/{imageId}?tagId={tagUUID}");
+        
+			if (response.IsSuccessStatusCode)
+			{
+				Console.WriteLine("Tag removed from image successfully.");
+			}
+			else
+			{
+				var error = await response.Content.ReadAsStringAsync();
+				Console.WriteLine($"Error: {response.StatusCode} - {error}");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Exception removing tag from image: {ex.Message}");
+		}
+	}
+
+	public async Task AddTagToImage(string imageId, Tag tag)
+	{
+		var payload = tag;
+
+		// Make a new HttpClient
+		using HttpClientHandler handler = new HttpClientHandler();
+		using HttpClient Http = new HttpClient(handler)
+		{
+			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+		};
+		// Post to the backend via HTTP
+		var response = await Http.PostAsJsonAsync($"api/v1/tag/{imageId}", payload);
+
+		if (response.IsSuccessStatusCode) {
+			Console.WriteLine("Tag uploaded to image successfully.");
+		} 
+		else {
+			var error = await response.Content.ReadAsStringAsync();
+			Console.WriteLine($"Error: {response.StatusCode} - {error}");
+		}
+	}
+
+	public async Task UploadTag(Tag tag)
+	{
+		var payload = tag;
+		
+		// Make a new HttpClient
+		using HttpClientHandler handler = new HttpClientHandler();
+		using HttpClient Http = new HttpClient(handler)
+		{
+			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+		};
+		// Post to the backend via HTTP
+		var response = await Http.PostAsJsonAsync($"api/v1/tag", payload);
+		
+		if (response.IsSuccessStatusCode)
+		{
+			Console.WriteLine("Image uploaded successfully.");
+		}
+		else
+		{
+			var error = await response.Content.ReadAsStringAsync();
+			Console.WriteLine($"Error: {response.StatusCode} - {error}");
+		}
+	}
+
+	public async Task DeleteTag(Tag tag)
+	{
+		try
+		{
+			// Make a new HttpClient
+			using HttpClientHandler handler = new HttpClientHandler();
+			using HttpClient Http = new HttpClient(handler)
+			{
+				BaseAddress = new Uri("http://localhost:5115/") // Base URL
+			};
+        
+			// Send DELETE request to the backend API
+			var response = await Http.DeleteAsync($"api/v1/tag/tagId={tag.UUID}");
+        
+			if (response.IsSuccessStatusCode)
+			{
+				Console.WriteLine("Tag removed from image successfully.");
+			}
+			else
+			{
+				var error = await response.Content.ReadAsStringAsync();
+				Console.WriteLine($"Error: {response.StatusCode} - {error}");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Exception removing tag from image: {ex.Message}");
 		}
 	}
 }

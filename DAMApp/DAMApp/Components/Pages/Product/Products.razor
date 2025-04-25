@@ -1,4 +1,5 @@
 ﻿@page "/dam/products"
+@using DAMApp.Models
 @attribute [StreamRendering]
 @rendermode  InteractiveServer
 @inject NavigationManager NavigationManager
@@ -156,10 +157,10 @@
 
     public void OnImageClickNavigateTo(string productId)
     {
-        NavigationManager.NavigateTo($"/dam/edit?productId={productId}");
+        NavigationManager.NavigateTo($"/dam/products/edit?productId={productId}");
     }
     
-    
+     
     
     private IEnumerable<Product> FilteredProducts()
     {
@@ -169,14 +170,6 @@
         return products.Where(products =>
             (products.Name != null && products.Name.Contains(searchProduct, StringComparison.OrdinalIgnoreCase)) || //returns based on product name and product id
             (products.ProductId != null && products.ProductId.Contains(searchProduct, StringComparison.OrdinalIgnoreCase)));
-    }
-
-
-    public class Product
-    {
-        public string Name { get; set; }
-        public string Url { get; set; }
-        public string ProductId { get; set; }
     }
 }
     

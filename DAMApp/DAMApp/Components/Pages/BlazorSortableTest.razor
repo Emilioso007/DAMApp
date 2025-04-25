@@ -3,12 +3,13 @@
 @rendermode  InteractiveServer
 @inject NavigationManager NavigationManager
 @using BlazorSortableList
+@using Models
 
 <SortableList Group="sharedLists" Items="items1" Context="item" 
               OnRemove="ListOneRemove" OnUpdate="ListOneReorder">
     <SortableItemTemplate>
         <div class="card has-border has-background-white">
-            <p class="is-size-4 p-2 ml-4">@item.Name</p>
+            <p class="is-size-4 p-2 ml-4">@item.ImageId</p>
         </div>
     </SortableItemTemplate>
 </SortableList>
@@ -19,14 +20,14 @@
               OnRemove="ListTwoRemove" OnUpdate="ListTwoReorder">
     <SortableItemTemplate>
         <div class="card has-background-white has-border">
-            <p class="is-size-4 p-2 ml-4">@item.Name</p>
+            <p class="is-size-4 p-2 ml-4">@item.ImageId</p>
         </div>
     </SortableItemTemplate>
 </SortableList>
 
 @code
 {
-    List<ImageItem> items1, items2;
+    List<Models.Image> items1, items2;
 
     protected override void OnInitialized ()
     {
@@ -34,9 +35,9 @@
 
         for (int i = 1 ; i <= 10 ; i++)
         {
-            items1.Add(new ImageItem()
+            items1.Add(new Models.Image()
             {
-                Name = ("Item #" + i)
+                ImageId = ("Item #" + i)
             });
         }
         
@@ -44,9 +45,9 @@
 
         for (int i = 11 ; i <= 20 ; i++)
         {
-            items2.Add(new ImageItem()
+            items2.Add(new Models.Image()
             {
-                Name = ("Item #" + i)
+                ImageId = ("Item #" + i)
             });
         }
         
@@ -100,9 +101,5 @@
         items2.Insert(indices.newIndex, item);
     }
 
-    class ImageItem
-    {
-        public string ImageId { get; set; }
-        public string Name { get; set; }
-    }
+    
 }

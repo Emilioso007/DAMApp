@@ -1,7 +1,7 @@
 using DAMApp.Services;
 using Microsoft.AspNetCore.Components;
 
-namespace DAMApp.Components.Pages;
+namespace DAMApp.Components.Pages.Product;
 
 public partial class Edit : ComponentBase
 {
@@ -15,8 +15,8 @@ public partial class Edit : ComponentBase
     private int _pageNumber = 1;
     private string _searchText = "";
 
-    private List<ImageItem> _productImages = [];
-    private List<ImageItem> _gallery = [];
+    private List<Models.Image> _productImages = [];
+    private List<Models.Image> _gallery = [];
         
     protected override async Task OnInitializedAsync ()
     {
@@ -31,7 +31,7 @@ public partial class Edit : ComponentBase
         List<string> imageIds = await ImageService.GetImagesByProduct(_productId); 
         foreach (string imgId in imageIds)
         {
-	        _productImages.Add(new ImageItem()
+	        _productImages.Add(new Models.Image
 	        {
 		        ImageId = imgId
 	        });
@@ -40,7 +40,7 @@ public partial class Edit : ComponentBase
         List<string> galleryImageIds = await ImageService.GetAllImageUUIDs();
         foreach (string galleryImageId in galleryImageIds)
         {
-	        _gallery.Add(new ImageItem()
+	        _gallery.Add(new Models.Image()
 	        {
 		        ImageId = galleryImageId
 	        });
@@ -104,11 +104,4 @@ public partial class Edit : ComponentBase
         // Insert at new position
         _gallery.Insert(indices.newIndex, item);
     }
-    
-	private class ImageItem
-	{
-	    public string ImageId { get; set; }
-	    public bool IsShown { get; set; } = true;
-	    public string Url => "http://localhost:5115/api/v1/assets/GetImageByUUID?uuid="+ImageId;
-	}
 }
