@@ -1,0 +1,114 @@
+using DAMApp.Services;
+using Microsoft.AspNetCore.Components;
+
+namespace DAMApp.Components.Pages;
+
+public partial class Edit : ComponentBase
+{
+
+	[Inject] private NavigationManager Navigation { get; set; }
+
+	[Inject] private ImageService ImageService { get; set; }
+	
+	private string _productId = "";
+    private string _productName = "";
+    private int _pageNumber = 1;
+    private string _searchText = "";
+
+    private List<ImageItem> _productImages = [];
+    private List<ImageItem> _gallery = [];
+        
+    protected override async Task OnInitializedAsync ()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (queryParams.TryGetValue("productId", out var id))
+            _productId = id;
+
+        _productName = await ImageService.GetProductName(new Guid(_productId));
+        
+        List<string> imageIds = await ImageService.GetImagesByProduct(_productId); 
+        foreach (string imgId in imageIds)
+        {
+	        _productImages.Add(new ImageItem()
+	        {
+		        ImageId = imgId
+	        });
+        }
+
+        List<string> galleryImageIds = await ImageService.GetAllImageUUIDs();
+        foreach (string galleryImageId in galleryImageIds)
+        {
+	        _gallery.Add(new ImageItem()
+	        {
+		        ImageId = galleryImageId
+	        });
+        }
+    }
+    
+    private async Task SearchButton()
+    {
+        
+    }
+    
+    private async Task ProductImageRemove((int oldIndex, int newIndex) indices)
+    {
+        // get the item at the old index in list 1
+        var item = _productImages[indices.oldIndex];
+
+        // add it to the new index in list 2
+        _gallery.Insert(indices.newIndex, item);
+
+        await ImageService.RemoveImageFromProduct(_productId, _productImages[indices.oldIndex].ImageId);
+        
+        // remove the item from the old index in list 1
+        _productImages.Remove(_productImages[indices.oldIndex]);
+    }
+
+    private async Task GalleryRemove((int oldIndex, int newIndex) indices)
+    {
+        // get the item at the old index in list 2
+        var item = _gallery[indices.oldIndex];
+
+        // add it to the new index in list 1
+        _productImages.Insert(indices.newIndex, item);
+        
+        await ImageService.AddImageToProduct(_productId, item.ImageId, indices.newIndex.ToString());
+       // remove the item from the old index in list 2
+        _gallery.Remove(_gallery[indices.oldIndex]);
+    }
+    
+    private async Task ProductImageReorder((int oldIndex, int newIndex) indices)
+    {
+        // Get the item being moved
+        var item = _productImages[indices.oldIndex];
+    
+        // Remove from old position
+        _productImages.RemoveAt(indices.oldIndex);
+    
+        // Insert at new position
+        _productImages.Insert(indices.newIndex, item);
+
+        await ImageService.UpdatePriority(_productId, item.ImageId, indices.newIndex);
+    }
+
+    private void GalleryReorder((int oldIndex, int newIndex) indices)
+    {
+        // Get the item being moved
+        var item = _gallery[indices.oldIndex];
+    
+        // Remove from old position
+        _gallery.RemoveAt(indices.oldIndex);
+        
+        // Insert at new position
+        _gallery.Insert(indices.newIndex, item);
+    }
+    
+	private class ImageItem
+	{
+	    public string ImageId { get; set; }
+	    public bool IsShown { get; set; } = true;
+	    public string Url => "http://localhost:5115/api/v1/assets/GetImageByUUID?uuid="+ImageId;
+	}
+}

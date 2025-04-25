@@ -5,9 +5,9 @@ using Microsoft.VisualBasic;
 
 namespace DAMApp.Services;
 
-public static class ImageService
+public class ImageService
 {
-	public static async Task UploadImage(InputFileChangeEventArgs e)
+	public async Task UploadImage(InputFileChangeEventArgs e)
 	{
 		// Select a file 
 		IBrowserFile file = e.File;
@@ -35,7 +35,7 @@ public static class ImageService
 			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
 		};
 		// Post to the backend via HTTP
-		var response = await Http.PostAsJsonAsync("api/v1/assets/add", payload);
+		var response = await Http.PostAsJsonAsync("api/v1/assets", payload);
 
 		if (response.IsSuccessStatusCode)
 		{
@@ -49,7 +49,7 @@ public static class ImageService
 
 	}
 
-	public static async Task<List<string>> GetImageIds(int size, int pageNumber, string searchText)
+	public async Task<List<string>> GetImageIds(int size, int pageNumber, string searchText)
 	{
 		List<string> imageIds = new List<string>();
 
@@ -85,7 +85,7 @@ public static class ImageService
 		return imageIds;
 	}
 
-	public static async Task<List<string>> GetImageSource(int size, int pageNumber, string searchText)
+	public async Task<List<string>> GetImageSource(int size, int pageNumber, string searchText)
 	{
 		List<string> imageSources = new List<string>();
 
@@ -96,7 +96,7 @@ public static class ImageService
 		return imageSources;
 	}
 
-	public static async Task<List<string>> GetImagesByProduct(string productId)
+	public async Task<List<string>> GetImagesByProduct(string productId)
 	{
 		List<string> ImagesByProduct = new List<string>();
 
@@ -124,8 +124,36 @@ public static class ImageService
 		
 		return ImagesByProduct;
 	}
+
+	public async Task<List<string>> GetAllImageUUIDs ()
+	{
+		List<string> uuids = [];
+
+		try
+		{
+			HttpClientHandler handler = new HttpClientHandler();
+			HttpClient Http = new HttpClient(handler)
+			{
+				BaseAddress = new Uri("http://localhost:5115/")
+			};
+
+			string apiUrl = "api/v1/assets/get-all";
+			var guids = await Http.GetFromJsonAsync<List<Guid>>(apiUrl);
+
+			foreach (var guid in guids)
+			{
+				uuids.Add(guid.ToString());
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error: {ex.Message}");
+		}
+
+		return uuids;
+	}
 	
-	public static async Task<List<Tag>> GetTags()
+	public async Task<List<Tag>> GetTags()
 	{
 		List<Tag> tags = new List<Tag>();
 
@@ -163,7 +191,7 @@ public static class ImageService
 		
 	}
 	
-	public static async Task UpdatePriority(string productId, string imageId, int newPriority)
+	public async Task UpdatePriority(string productId, string imageId, int newPriority)
 	{
 		var patchDoc = new[]
 		{
@@ -209,7 +237,7 @@ public static class ImageService
 		public string Priority { get; set; }
 	}
 	
-	public static async Task AddImageToProduct(string productId, string imageId, string newPriority)
+	public async Task AddImageToProduct(string productId, string imageId, string newPriority)
 	{
 		var payload = new AddProductImageRequest()
 		{
@@ -240,7 +268,7 @@ public static class ImageService
 		public string ImageId { get; set; }
 	}
 	
-	public static async Task RemoveImageFromProduct(string productId, string imageId)
+	public async Task RemoveImageFromProduct(string productId, string imageId)
 	{
 		var payload = new RemoveProductImageRequest()
 		{
@@ -262,6 +290,39 @@ public static class ImageService
 		else {
 			var error = await response.Content.ReadAsStringAsync();
 			Console.WriteLine($"Error: {response.StatusCode} - {error}");
+		}
+	}
+	
+	public class GetProductResponse {
+		public string Name { get; set; }
+		public Guid UUID { get; set; }
+	}
+
+	public async Task<string> GetProductName(Guid productUUID)
+	{
+		try
+		{
+			string apiUrl = $"api/v1/assets/getProduct?productId={productUUID}";
+        
+			HttpClientHandler handler = new HttpClientHandler();
+			HttpClient Http = new HttpClient(handler)
+			{
+				BaseAddress = new Uri("http://localhost:5115/")
+			};
+			
+			var response = await Http.GetFromJsonAsync<GetProductResponse>(apiUrl);
+        
+			if (response != null)
+			{
+				return response.Name;
+			}
+        
+			return "name not found";
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error in GetProductName: {ex.GetType().Name}: {ex.Message}");
+			return "name not found";
 		}
 	}
 }

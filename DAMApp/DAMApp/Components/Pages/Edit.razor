@@ -1,10 +1,7 @@
 ﻿@page "/dam/edit"
-@using DAMApp.Services
-@inject NavigationManager Navigation
 @attribute [StreamRendering]
 @rendermode  InteractiveServer
 @using BlazorSortableList
-
 
 <style>
     .gallery {
@@ -38,26 +35,16 @@
     <title>Edit</title>
 </head>
 
-<!-- Top section -->
 <section>
     <h1>Product edit page</h1>
-    @if (productId != null)
-    {
-        <p><strong>Product ID:</strong> @productId</p>
-    }
-    else
-    {
-        <p>Product not found.</p>
-    }
-    
+    <p><strong>Product name:</strong>@_productName</p>
+    <p><strong>Product ID:</strong>@_productId</p>
 </section>
 
-<!-- The particular products images -->
-<!-- For Product Images -->
 <section>
     <h2>Product images</h2>
     <div class="gallery">
-        <SortableList Group="sharedLists" Items="productImages" Context="asset" 
+        <SortableList Group="sharedLists" Items="_productImages" Context="asset" 
                       OnRemove="ProductImageRemove" OnUpdate="ProductImageReorder">
             <SortableItemTemplate>
                 <div class="card has-border has-background-white img_in_gallery">
@@ -69,25 +56,21 @@
     </div>
 </section>
 
-<!-- For Gallery -->
 <section>
     <div>
         <h2>Image gallery</h2>
 
         <div>
-            <InputText @bind-Value="searchText" placeholder="Search for assets"/>
-            <p>@pageNumber</p>
-            <button @onclick="() => NavigateToPage(pageNumber - 1)">Previous page</button>
-            <button @onclick="() => NavigateToPage(pageNumber + 1)">Next Page</button>
+            <InputText @bind-Value="_searchText" placeholder="Search for assets by uuid"/>
             <button @onclick="SearchButton">Search</button>
         </div>
 
         <div class="gallery">
-            <SortableList Group="sharedLists" Items="gallery" Context="asset" 
+            <SortableList Group="sharedLists" Items="_gallery" Context="asset" 
                           OnRemove="GalleryRemove" OnUpdate="GalleryReorder">
                 <SortableItemTemplate>
                     <div class="card has-border has-background-white img_in_gallery">
-                        <img src="@asset.Url"/>
+                        <img src="@asset.Url" alt=""/>
                         <p>@asset.ImageId</p>
                     </div>
                 </SortableItemTemplate>
@@ -95,123 +78,3 @@
         </div>
     </div>
 </section>
-
-@code {
-    private string? productId;
-    private string? productName;
-    private string? productUrl;
-    private int pageNumber = 1;
-    private string searchText = "";
-
-    private List<ImageItem>? productImages = new();
-    private List<ImageItem>? gallery = new();
-        
-    protected override async Task OnInitializedAsync ()
-    {
-        var uri = new Uri(Navigation.Uri);
-        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-
-        if (queryParams.TryGetValue("productId", out var id))
-            productId = id;
-        
-             List<string> imageIds = await ImageService.GetImagesByProduct(productId); 
-             foreach (string imgId in imageIds)
-             {
-                 productImages.Add(new ImageItem()
-                 {
-                     ImageId = imgId
-                 });
-             }
-             
-            List<string> ids = await ImageService.GetImageIds(20, pageNumber, searchText);
-            foreach (string imgid in ids)
-            {
-                gallery.Add(new ImageItem()
-                {
-                    ImageId = imgid
-                });
-            }
-    }
-    
-    public async Task SearchButton()
-    {
-        List<string> ids = await ImageService.GetImageIds(20, pageNumber, searchText);
-        foreach (string id in ids)
-        {
-            gallery.Add(new ImageItem()
-            {
-                ImageId = id
-            });
-        }
-    }
-    
-    public void NavigateToPage(int pageNum)
-    {
-        Navigation.NavigateTo($"/dam/assets?Page={pageNum}", true);
-    }
-    
-    private async Task ProductImageRemove((int oldIndex, int newIndex) indices)
-    {
-        // get the item at the old index in list 1
-        var item = productImages[indices.oldIndex];
-
-        // add it to the new index in list 2
-        gallery.Insert(indices.newIndex, item);
-
-        await ImageService.RemoveImageFromProduct(productId, productImages[indices.oldIndex].ImageId);
-        
-        // remove the item from the old index in list 1
-        productImages.Remove(productImages[indices.oldIndex]);
-    }
-
-    private async Task GalleryRemove((int oldIndex, int newIndex) indices)
-    {
-        // get the item at the old index in list 2
-        var item = gallery[indices.oldIndex];
-
-        // add it to the new index in list 1
-        productImages.Insert(indices.newIndex, item);
-        
-        await ImageService.AddImageToProduct(productId, item.ImageId, indices.newIndex.ToString());
-       // remove the item from the old index in list 2
-        gallery.Remove(gallery[indices.oldIndex]);
-    }
-    
-    private async Task ProductImageReorder((int oldIndex, int newIndex) indices)
-    {
-        // Get the item being moved
-        var item = productImages[indices.oldIndex];
-    
-        // Remove from old position
-        productImages.RemoveAt(indices.oldIndex);
-    
-        // Insert at new position
-        productImages.Insert(indices.newIndex, item);
-
-        await ImageService.UpdatePriority(productId, item.ImageId, indices.newIndex);
-    }
-
-    private void GalleryReorder((int oldIndex, int newIndex) indices)
-    {
-        // Get the item being moved
-        var item = gallery[indices.oldIndex];
-    
-        // Remove from old position
-        gallery.RemoveAt(indices.oldIndex);
-        
-        // Insert at new position
-        gallery.Insert(indices.newIndex, item);
-    }
-    
-    class ImageItem
-    {
-        public string ImageId { get; set; }
-        public string Url
-        {
-            get
-            {
-                return "http://localhost:5115/api/v1/assets/GetImageByUUID?uuid="+ImageId;
-            }
-        }
-    }
-}
