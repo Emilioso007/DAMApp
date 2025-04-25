@@ -1,4 +1,5 @@
 using DAMApp.Components;
+using DAMApp.Services;
 
 namespace DAMApp;
 
@@ -14,6 +15,7 @@ public class Program
 			.AddInteractiveWebAssemblyComponents();
 		
 		builder.Services.AddHttpClient();
+		builder.Services.AddScoped<ImageService>();
 
 		var app = builder.Build();
 
