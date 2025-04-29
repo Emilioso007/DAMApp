@@ -2,6 +2,7 @@
 @attribute [StreamRendering]
 @rendermode  InteractiveServer
 @using BlazorSortableList
+@using DAMApp.Models
 @using DAMApp.Services
 @inject CreateService CreateService
 @inject ReadService ReadService
@@ -70,7 +71,7 @@
         </div>
 
         <div class="gallery">
-            <SortableList Group="sharedLists" Items="_list" Context="tag" 
+            <SortableList Group="sharedLists" Items="_list.FindAll(Match)" Context="tag" 
                           OnRemove="ListRemove" OnUpdate="ListReorder">
                 <SortableItemTemplate>
                     <div class="card has-border has-background-white img_in_gallery">
@@ -79,6 +80,13 @@
                     </div>
                 </SortableItemTemplate>
             </SortableList>
+            @{
+                bool Match(Tag tag)
+                {
+                    return string.IsNullOrEmpty(_searchText) || tag.Name.Contains(_searchText);
+                }
+            }
+
         </div>
     </div>
 </section>

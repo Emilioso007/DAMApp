@@ -149,9 +149,11 @@
         imageSources = await ReadService.GetImageSource(size, pageNumber, searchText);
     }
     
-    public void OnImageClickNavigateTo(string imageId)
+    public void OnImageClickNavigateTo(string imageUrl)
     {
-        Navigation.NavigateTo($"/dam/images/edit/{imageId}");
+        //http://localhost:5115/api/v1/assets/GetImageByUUID?uuid=008bd3e2-5a4d-4a16-ae8b-f7537bee8642
+        string imageId = imageUrl.Substring(56); //ew
+        Navigation.NavigateTo($"/dam/images/edit?imageId={imageId}");
     }
     
     protected override async Task OnInitializedAsync()

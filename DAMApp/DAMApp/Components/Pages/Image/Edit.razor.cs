@@ -1,4 +1,3 @@
-using DAMApp.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace DAMApp.Components.Pages.Image;
@@ -25,12 +24,21 @@ public partial class Edit : ComponentBase
         _imageTags = await ReadService.GetTagsByImage(new Guid(_imageId));
 
         _list = await ReadService.GetTagsNotOnImage(new Guid(_imageId));
-        
+
     }
     
     private async Task SearchButton()
     {
-        
+	    /*
+	    foreach (Models.Tag tag in _list)
+	    {
+		    tag.IsShown = true;
+		    if (!tag.Name.Contains(_searchText))
+		    {
+			    tag.IsShown = false;
+		    }
+	    }
+	    */
     }
     
     private async Task ImageTagsRemove((int oldIndex, int newIndex) indices)
