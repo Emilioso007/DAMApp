@@ -1,13 +1,18 @@
+using DAMApp.Services;
 using Microsoft.AspNetCore.Components;
 
-namespace DAMApp.Components.Pages.Image;
+namespace DAMApp.Components.Pages.Asset;
 
 public partial class Edit : ComponentBase
 {
 
 	[Inject] private NavigationManager Navigation { get; set; }
+	[Inject] private CreateService CreateService { get; set; }
+	[Inject] private ReadService ReadService { get; set; }
+	[Inject] private UpdateService UpdateService { get; set; }
+	[Inject] private DeleteService DeleteService { get; set; }
 	
-	private string _imageId = "";
+	private string _assetId = "";
     private string _searchText = "";
     
     private List<Models.Tag> _imageTags = [];
@@ -19,11 +24,11 @@ public partial class Edit : ComponentBase
         var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
         if (queryParams.TryGetValue("imageId", out var id))
-            _imageId = id;
+	        _assetId = id;
 
-        _imageTags = await ReadService.GetTagsByImage(new Guid(_imageId));
+        _imageTags = await ReadService.GetTagsByAsset(_assetId);
 
-        _list = await ReadService.GetTagsNotOnImage(new Guid(_imageId));
+        _list = await ReadService.GetTagsNotOnAsset(_assetId);
 
     }
     
@@ -49,7 +54,7 @@ public partial class Edit : ComponentBase
         // add it to the new index in list 2
         _list.Insert(indices.newIndex, item);
 
-        await DeleteService.RemoveTagFromImage(_imageId, _imageTags[indices.oldIndex].UUID.ToString());
+        await DeleteService.RemoveTagFromAsset(_assetId, _imageTags[indices.oldIndex].UUID.ToString());
         
         // remove the item from the old index in list 1
         _imageTags.Remove(_imageTags[indices.oldIndex]);
@@ -58,12 +63,12 @@ public partial class Edit : ComponentBase
     private async Task ListRemove((int oldIndex, int newIndex) indices)
     {
         // get the item at the old index in list 2
-        var item = _list[indices.oldIndex];
+        var tag = _list[indices.oldIndex];
 
         // add it to the new index in list 1
-        _imageTags.Insert(indices.newIndex, item);
+        _imageTags.Insert(indices.newIndex, tag);
         
-        await CreateService.AddTagToImage(_imageId, item);
+        await CreateService.AddTagToImage(_assetId, tag.UUID.ToString());
        // remove the item from the old index in list 2
        _list.Remove(_list[indices.oldIndex]);
     }

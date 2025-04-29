@@ -53,8 +53,8 @@
                       OnRemove="ProductImageRemove" OnUpdate="ProductImageReorder">
             <SortableItemTemplate>
                 <div class="card has-border has-background-white img_in_gallery">
-                    <img src="@asset.Url" alt="image of something"/>
-                    <p>@asset.ImageId</p>
+                    <img src="@ReadService.GetAssetContentById(asset.UUID.ToString())" alt="image of something"/>
+                    <p>@asset.UUID</p>
                 </div>
             </SortableItemTemplate>
         </SortableList>
@@ -75,8 +75,8 @@
                           OnRemove="GalleryRemove" OnUpdate="GalleryReorder">
                 <SortableItemTemplate>
                     <div class="card has-border has-background-white img_in_gallery">
-                        <img src="@asset.Url" alt=""/>
-                        <p>@asset.ImageId</p>
+                        <img src="@ReadService.GetAssetContentById(asset.UUID.ToString())" alt=""/>
+                        <p>@asset.UUID</p>
                     </div>
                 </SortableItemTemplate>
             </SortableList>

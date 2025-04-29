@@ -1,10 +1,16 @@
 using DAMApp.Models;
+using DAMApp.Services.API;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace DAMApp.Services;
 
 public class CreateService
 {
+	
+	/// <summary>
+	/// Uploads an image to the database via the api.
+	/// </summary>
+	/// <param name="e"></param>
 	public async Task UploadImage(InputFileChangeEventArgs e)
 	{
 		// Select a file 
@@ -21,7 +27,7 @@ public class CreateService
 		//Console.WriteLine(dataUrl);
 
 		// Make payload for uploading an image to the backend
-		var payload = new ImageUpload()
+		var payload = new CreateImageRequest()
 		{
 			Content = dataUrl
 		};
@@ -37,7 +43,7 @@ public class CreateService
 
 		if (response.IsSuccessStatusCode)
 		{
-			Console.WriteLine("Image uploaded successfully.");
+			Console.WriteLine($"Image \"{file.Name}\" uploaded successfully.");
 		}
 		else
 		{
@@ -46,9 +52,16 @@ public class CreateService
 		}
 	}
 	
-	public async Task UploadTag(Tag tag)
+	/// <summary>
+	/// Uploads a tag to the database via the api. 
+	/// </summary>
+	/// <param name="tagName"></param>
+	public async Task UploadTag(string tagName)
 	{
-		var payload = tag;
+		var payload = new CreateTagRequest
+		{
+			Name = tagName
+		};
 		
 		// Make a new HttpClient
 		using HttpClientHandler handler = new HttpClientHandler();
@@ -57,11 +70,11 @@ public class CreateService
 			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
 		};
 		// Post to the backend via HTTP
-		var response = await Http.PostAsJsonAsync($"api/v1/tag", payload);
+		var response = await Http.PostAsJsonAsync($"api/v1/tags", payload);
 		
 		if (response.IsSuccessStatusCode)
 		{
-			Console.WriteLine("Image uploaded successfully.");
+			Console.WriteLine($"Tag \"{tagName}\" uploaded successfully.");
 		}
 		else
 		{
@@ -70,10 +83,13 @@ public class CreateService
 		}
 	}
 	
-	public async Task AddTagToImage(string imageId, Tag tag)
+	/// <summary>
+	/// Makes a relationship between an asset and a tag via the api.
+	/// </summary>
+	/// <param name="assetId"></param>
+	/// <param name="tagId"></param>
+	public async Task AddTagToImage(string assetId, string tagId)
 	{
-		var payload = tag;
-
 		// Make a new HttpClient
 		using HttpClientHandler handler = new HttpClientHandler();
 		using HttpClient Http = new HttpClient(handler)
@@ -81,10 +97,10 @@ public class CreateService
 			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
 		};
 		// Post to the backend via HTTP
-		var response = await Http.PostAsJsonAsync($"api/v1/tag/{imageId}", payload);
+		var response = await Http.PostAsync($"api/v1/assets/{assetId}/tags/{tagId}", null);
 		
 		if (response.IsSuccessStatusCode) {
-			Console.WriteLine("Tag uploaded to image successfully.");
+			Console.WriteLine($"Tag \"{tagId}\" added to asset \"{assetId}\" successfully.");
 		} 
 		else {
 			var error = await response.Content.ReadAsStringAsync();
@@ -92,31 +108,31 @@ public class CreateService
 		}
 	}
 	
-	public class AddProductImageRequest
-	{
-		public string ImageId { get; set; }
-		public string Priority { get; set; }
-	}
-	
-	public async Task AddImageToProduct(string productId, string imageId, string newPriority)
+	/// <summary>
+	/// Makes a relationship with the specified priority between a product and an asset via the api.
+	/// </summary>
+	/// <param name="productId"></param>
+	/// <param name="assetId"></param>
+	/// <param name="priority"></param>
+	public async Task AddAssetToProduct(string productId, string assetId, string priority)
 	{
 		var payload = new AddProductImageRequest()
 		{
-			ImageId = imageId,
-			Priority = newPriority
+			ImageId = assetId,
+			Priority = priority
 		};
 
 		// Make a new HttpClient
 		using HttpClientHandler handler = new HttpClientHandler();
 		using HttpClient Http = new HttpClient(handler)
 		{
-			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+			BaseAddress = new Uri("http://localhost:5115/")
 		};
 		// Post to the backend via HTTP
-		var response = await Http.PostAsJsonAsync($"api/v1/assets/{productId}/add", payload);
+		var response = await Http.PostAsJsonAsync($"api/v1/products/{productId}/assets", payload);
 
 		if (response.IsSuccessStatusCode) {
-			Console.WriteLine("Image uploaded to product successfully.");
+			Console.WriteLine($"Asset \"{assetId}\" added to product \"{productId}\" successfully.");
 		} 
 		else {
 			var error = await response.Content.ReadAsStringAsync();

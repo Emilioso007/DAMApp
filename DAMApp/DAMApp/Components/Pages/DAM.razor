@@ -87,13 +87,14 @@
     🖼️ Assets
 </button>
 
+<button class="nav-button" @onclick="NavigateToTags">
+    🏷️️ Tags
+</button>
+
 <button class="nav-button" @onclick="NavigateToHelp" >
     💡 Help
 </button>
 
-<button class="nav-button" @onclick="NavigateToTags">
-    Tags
-</button>
         
         
 
@@ -121,12 +122,17 @@
     
     public void NavigateToAssets()
     {
-        NavigationManager.NavigateTo($"/dam/images");
+        NavigationManager.NavigateTo($"/dam/assets");
     }
     
     public void NavigateToHelp()
     {
         NavigationManager.NavigateTo($"/dam/help");
+    }
+    
+    public void NavigateToTags ()
+    {
+        NavigationManager.NavigateTo("/dam/tags");
     }
     
     private bool showHelp = false;
@@ -136,9 +142,5 @@
         showHelp = !showHelp;
     }
 
-    public void NavigateToTags ()
-    {
-        NavigationManager.NavigateTo("/dam/tags");
-    }
 }
 

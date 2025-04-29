@@ -9,7 +9,7 @@
               OnRemove="ListOneRemove" OnUpdate="ListOneReorder">
     <SortableItemTemplate>
         <div class="card has-border has-background-white">
-            <p class="is-size-4 p-2 ml-4">@item.ImageId</p>
+            <p class="is-size-4 p-2 ml-4">@item.Name</p>
         </div>
     </SortableItemTemplate>
 </SortableList>
@@ -20,14 +20,19 @@
               OnRemove="ListTwoRemove" OnUpdate="ListTwoReorder">
     <SortableItemTemplate>
         <div class="card has-background-white has-border">
-            <p class="is-size-4 p-2 ml-4">@item.ImageId</p>
+            <p class="is-size-4 p-2 ml-4">@item.Name</p>
         </div>
     </SortableItemTemplate>
 </SortableList>
 
 @code
 {
-    List<Models.Image> items1, items2;
+    class Item
+    {
+        public string Name { get; set; }
+    }
+    
+    List<Item> items1, items2;
 
     protected override void OnInitialized ()
     {
@@ -35,9 +40,9 @@
 
         for (int i = 1 ; i <= 10 ; i++)
         {
-            items1.Add(new Models.Image()
+            items1.Add(new Item()
             {
-                ImageId = ("Item #" + i)
+                Name = ("Item #" + i)
             });
         }
         
@@ -45,9 +50,9 @@
 
         for (int i = 11 ; i <= 20 ; i++)
         {
-            items2.Add(new Models.Image()
+            items2.Add(new Item()
             {
-                ImageId = ("Item #" + i)
+                Name = ("Item #" + i)
             });
         }
         
@@ -100,6 +105,4 @@
         // Insert at new position
         items2.Insert(indices.newIndex, item);
     }
-
-    
 }

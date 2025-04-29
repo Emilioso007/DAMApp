@@ -1,142 +1,119 @@
+using DAMApp.Services.API;
+
 namespace DAMApp.Services;
 using DAMApp.Models;
 
 public class ReadService
 {
-	public async Task<List<string>> GetImageSource(int size, int pageNumber, string searchText)
-	{
-		List<string> imageSources = new List<string>();
-
-		foreach (string id in await GetImageIds(size, pageNumber, searchText))
-		{
-			imageSources.Add("http://localhost:5115/api/v1/assets/GetImageByUUID?uuid="+id);
-		}
-		return imageSources;
-	}
 	
-	public async Task<List<string>> GetImageIds(int size, int pageNumber, string searchText)
+	/// <summary>
+	/// Returns a list of asset IDs by searching for a specific query.
+	/// </summary>
+	/// <param name="size">Number of results per page.</param>
+	/// <param name="pageNumber">Page number to retrieve.</param>
+	/// <param name="searchText">Search query text.</param>
+	/// <returns>List of asset IDs matching the search query.</returns>
+	public async Task<List<string>> GetAssetIdsBySearching(int size, int pageNumber, string searchText)
 	{
-		List<string> imageIds = new List<string>();
+		List<string> assetIds = new List<string>();
 
-		try
+		HttpClientHandler handler = new HttpClientHandler();
+		HttpClient Http = new HttpClient(handler)
 		{
-			HttpClientHandler handler = new HttpClientHandler();
-			HttpClient Http = new HttpClient(handler)
-			{
-				BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
-			};
+			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+		};
 
-			string apiUrl = $"api/v1/assets/imageIdPile?size={size}&offset={pageNumber}";
+		string apiUrl = $"api/v1/assets/search?size={size}&page={pageNumber}";
 
-			if (!string.IsNullOrEmpty(searchText))
-			{
-				apiUrl =
-					$"api/v1/assets/imageIdPileFromSearch?size={size}&offset={pageNumber}&searchquery={searchText}";
-			}
-			
-			imageIds = await Http.GetFromJsonAsync<List<string>>(apiUrl);
-
-		}
-		catch (Exception ex)
+		if (!string.IsNullOrEmpty(searchText))
 		{
-			Console.WriteLine($"Error: {ex.Message}");
-		}
-
-		foreach (string uuid in imageIds)
-		{
-			Console.WriteLine(uuid);
-		}
-
-		return imageIds;
-	}
-	
-	public async Task<string> GetImageSourceById(string id)
-	{
-		return ("http://localhost:5115/api/v1/assets/GetImageByUUID?uuid="+id);
-	}
-	
-	public async Task<List<string>> GetImagesByProduct(string productId)
-	{
-		List<string> ImagesByProduct = new List<string>();
-
-		try
-		{
-			HttpClientHandler handler = new HttpClientHandler();
-			HttpClient Http = new HttpClient(handler)
-			{
-				BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
-			};
-
-			string apiUrl = $"api/v1/assets/{productId}/all";
-
-			GetProductAssetsIdsResponse response = await Http.GetFromJsonAsync<GetProductAssetsIdsResponse>(apiUrl);
-			foreach (Guid guid in response.ImageIds)
-			{
-				ImagesByProduct.Add(guid.ToString());
-			}
-
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Error: {ex.Message}");
+			apiUrl += $"&searchQuery={searchText}";
 		}
 		
-		return ImagesByProduct;
+		assetIds = await Http.GetFromJsonAsync<List<string>>(apiUrl);
+
+		return assetIds;
 	}
 	
-	
-	public async Task<List<string>> GetAllImageUUIDs ()
+	/// <summary>
+	/// Simply converts a assetId into a url for that asset.
+	/// </summary>
+	/// <param name="assetId"></param>
+	/// <returns>The url that points to that asset.</returns>
+	public async Task<string> GetAssetContentById(string assetId)
 	{
-		List<string> uuids = [];
-
-		try
-		{
-			HttpClientHandler handler = new HttpClientHandler();
-			HttpClient Http = new HttpClient(handler)
-			{
-				BaseAddress = new Uri("http://localhost:5115/")
-			};
-
-			string apiUrl = "api/v1/assets/get-all";
-			var guids = await Http.GetFromJsonAsync<List<Guid>>(apiUrl);
-
-			foreach (var guid in guids)
-			{
-				uuids.Add(guid.ToString());
-			}
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Error: {ex.Message}");
-		}
-
-		return uuids;
+		return $"http://localhost:5115/api/v1/assets/{assetId}";
 	}
 	
-	public async Task<List<Tag>> GetTags()
+	/// <summary>
+	/// Returns a list of assetIds associated with a product.
+	/// </summary>
+	/// <param name="productId"></param>
+	/// <returns></returns>
+	public async Task<List<string>> GetAssetsByProduct(string productId)
 	{
-		List<Tag> tags = new List<Tag>();
+		List<string> assets = new List<string>();
 
-		try
+		HttpClientHandler handler = new HttpClientHandler();
+		HttpClient Http = new HttpClient(handler)
 		{
-			HttpClientHandler handler = new HttpClientHandler();
-			HttpClient Http = new HttpClient(handler)
-			{
-				BaseAddress = new Uri("http://localhost:5115/")
-			};
+			BaseAddress = new Uri("http://localhost:5115/")
+		};
 
-			string apiUrl = "api/v1/assets/tags";
-			tags = await Http.GetFromJsonAsync<List<Tag>>(apiUrl);
-		}
-		catch (Exception ex)
+		var response = await Http.GetFromJsonAsync<GetProductAssetsIdsResponse>($"api/v1/products/{productId}/assets");
+		foreach (Guid guid in response.ImageIds)
 		{
-			Console.WriteLine($"Error: {ex.Message}");
+			assets.Add(guid.ToString());
 		}
+		
+		return assets;
+	}
+	
+	/// <summary>
+	/// Returns a complete list of all asset ids.
+	/// </summary>
+	/// <returns></returns>
+	public async Task<List<string>> GetAllAssetIds ()
+	{
+		List<string> assetIds = [];
+
+		HttpClientHandler handler = new HttpClientHandler();
+		HttpClient Http = new HttpClient(handler)
+		{
+			BaseAddress = new Uri("http://localhost:5115/")
+		};
+
+		var guids = await Http.GetFromJsonAsync<List<Guid>>("api/v1/assets");
+
+		foreach (var guid in guids)
+		{
+			assetIds.Add(guid.ToString());
+		}
+
+		return assetIds;
+	}
+	
+	/// <summary>
+	/// Returns a list of all tags
+	/// </summary>
+	/// <returns></returns>
+	public async Task<List<Tag>> GetAllTags()
+	{
+		List<Tag> tags = [];
+
+		HttpClientHandler handler = new HttpClientHandler();
+		HttpClient Http = new HttpClient(handler)
+		{
+			BaseAddress = new Uri("http://localhost:5115/")
+		};
+
+		tags = await Http.GetFromJsonAsync<List<Tag>>("api/v1/tags");
 
 		return tags;
 	}
 	
-	public static async Task<List<string>> GetImagesByTags(List<string> selectedTags)
+	// TODO: Implement endpoint for this action
+	public static async Task<List<string>> GetAssetsByTags(List<string> selectedTags)
 	{
 		List<string> imageSources = new List<string>();
 
@@ -166,103 +143,59 @@ public class ReadService
 		return imageSources;
 	}
 	
-	public async Task<List<Tag>> GetTagsByImage (Guid imageUUID)
+	/// <summary>
+	/// Returns a list of tags based on an assetId
+	/// </summary>
+	/// <param name="assetId"></param>
+	/// <returns></returns>
+	public async Task<List<Tag>> GetTagsByAsset (string assetId)
 	{
-		try
+		HttpClientHandler handler = new HttpClientHandler();
+		HttpClient Http = new HttpClient(handler)
 		{
-			string apiUrl = $"api/v1/tag?imageId={imageUUID}";
-        
-			HttpClientHandler handler = new HttpClientHandler();
-			HttpClient Http = new HttpClient(handler)
-			{
-				BaseAddress = new Uri("http://localhost:5115/")
-			};
-			
-			var response = await Http.GetFromJsonAsync<List<Tag>>(apiUrl);
-        
-			if (response != null)
-			{
-				return response;
-			}
-        
-			return [];
+			BaseAddress = new Uri("http://localhost:5115/")
+		};
+		try{
+		var response = await Http.GetFromJsonAsync<List<Tag>>($"api/v1/assets/{assetId}/tags");
+		return response;
 		}
-		catch (Exception ex)
+		catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 		{
-			Console.WriteLine($"Error in GetTagsByImage: {ex.GetType().Name}: {ex.Message}");
+			// Handle 404 specifically
+			Console.WriteLine("Resource not found (404)");
+			// Return empty list or default value
 			return [];
 		}
 	}
 	
-	public async Task<List<Tag>> GetTagsNotOnImage (Guid imageUUID)
+	public async Task<List<Tag>> GetTagsNotOnAsset (string assetId)
 	{
-		try
+		HttpClientHandler handler = new HttpClientHandler();
+		HttpClient Http = new HttpClient(handler)
 		{
-			string apiUrl = $"api/v1/tag/exclude?imageId={imageUUID}";
-        
-			HttpClientHandler handler = new HttpClientHandler();
-			HttpClient Http = new HttpClient(handler)
-			{
-				BaseAddress = new Uri("http://localhost:5115/")
-			};
-			
-			var response = await Http.GetFromJsonAsync<List<Tag>>(apiUrl);
-        
-			if (response != null)
-			{
-				return response;
-			}
-        
-			return [];
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Error in GetTagsNotOnImage: {ex.GetType().Name}: {ex.Message}");
-			return [];
-		}
-	}
-	
-	public class GetProductResponse {
-		public string Name { get; set; }
-		public Guid UUID { get; set; }
-	}
-	
-	public async Task<string> GetProductName(Guid productUUID)
-	{
-		try
-		{
-			string apiUrl = $"api/v1/assets/getProduct?productId={productUUID}";
-        
-			HttpClientHandler handler = new HttpClientHandler();
-			HttpClient Http = new HttpClient(handler)
-			{
-				BaseAddress = new Uri("http://localhost:5115/")
-			};
-			
-			var response = await Http.GetFromJsonAsync<GetProductResponse>(apiUrl);
-        
-			if (response != null)
-			{
-				return response.Name;
-			}
-        
-			return "name not found";
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Error in GetProductName: {ex.GetType().Name}: {ex.Message}");
-			return "name not found";
-		}
-	}
-	
-	class GetProductAssetsIdsResponse {
+			BaseAddress = new Uri("http://localhost:5115/")
+		};
 		
-		public List<Guid> ImageIds { get; set; }
-
-		public GetProductAssetsIdsResponse(List<Guid> imageIds)
+		var response = await Http.GetFromJsonAsync<List<Tag>>($"api/v1/assets/{assetId}/tags/gallery");
+    
+		return response;
+	}
+	
+	// TODO: Implement endpoint for this action
+	public async Task<string> GetProductName(string productId)
+	{
+		string apiUrl = $"api/v1/assets/getProduct?productId={productId}";
+    
+		HttpClientHandler handler = new HttpClientHandler();
+		HttpClient Http = new HttpClient(handler)
 		{
-			ImageIds = imageIds;
-		}
+			BaseAddress = new Uri("http://localhost:5115/")
+		};
+		
+		var response = await Http.GetFromJsonAsync<GetProductResponse>(apiUrl);
+    
+		return response.Name;
+		
 	}
 	
 }

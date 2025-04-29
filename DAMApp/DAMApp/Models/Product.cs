@@ -1,9 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace DAMApp.Models;
 
-public class Product : IHideable
+public class Product
 {
-	public string Name { get; set; }
-	public string Url { get; set; }
-	public string ProductId { get; set; }
-	public bool IsShown { get; set; } = true;
+    [Key] public Guid UUID { get; set; }
+    public string Name { get; set; }
+
 }

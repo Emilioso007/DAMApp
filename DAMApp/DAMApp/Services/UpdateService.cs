@@ -1,16 +1,17 @@
+using DAMApp.Models;
+
 namespace DAMApp.Services;
 
 public class UpdateService
 {
-	
-	class UpdateImageRequest
-	{
-		public string op { get; set; }
-		public string path { get; set; }
-		public int priority { get; set; }
-	}
-	
-	public async Task UpdatePriority(string productId, string imageId, int newPriority)
+
+	/// <summary>
+	/// Updates the relationship priority between a product and an asset.
+	/// </summary>
+	/// <param name="productId"></param>
+	/// <param name="assetId"></param>
+	/// <param name="newPriority"></param>
+	public async Task UpdatePriority(string productId, string assetId, int newPriority)
 	{
 		var patchDoc = new[]
 		{
@@ -22,19 +23,20 @@ public class UpdateService
 			}
 		};
 
-		// Make a new HttpClient
 		using HttpClientHandler handler = new HttpClientHandler();
-		using HttpClient Http = new HttpClient(handler)
+		using HttpClient http = new HttpClient(handler)
 		{
-			BaseAddress = new Uri("http://localhost:5115/") // Replace with your API's base URL
+			BaseAddress = new Uri("http://localhost:5115/")
 		};
-		// Post to the backend via HTTP
-		var response = await Http.PatchAsJsonAsync($"api/v1/assets/{productId}/{imageId}", patchDoc);
 
-		if (response.IsSuccessStatusCode) {
-			Console.WriteLine("Image uploaded successfully.");
-		} 
-		else {
+		var response = await http.PatchAsJsonAsync($"api/v1/assets/{productId}/assets/{assetId}", patchDoc);
+
+		if (response.IsSuccessStatusCode)
+		{
+			Console.WriteLine("Priority updated successfully.");
+		}
+		else
+		{
 			var error = await response.Content.ReadAsStringAsync();
 			Console.WriteLine($"Error: {response.StatusCode} - {error}");
 		}

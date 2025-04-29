@@ -1,11 +1,6 @@
-@page "/dam/images"
+@page "/dam/assets"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
-@inject NavigationManager Navigation
-@using DAMApp.Models
-@using DAMApp.Services
-@inject CreateService CreateService
-@inject ReadService ReadService
 
 <style>
     body {
@@ -119,90 +114,4 @@
 </div>
 }
 
-@code {
-    private bool DEBUG = true;
-    private bool _isLoaded = false;
-
-    private string searchText = "";
-    private int size = 20; 
-    private int pageNumber = 1;
-    private List<string> imageSources = new();
-    private HashSet<string> selectedImageIds = new HashSet<string>();
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            //await Task.Delay(250);
-            _isLoaded = true;
-            StateHasChanged();
-        }
-    }
-    
-    public void SelectId(string uuid)
-    {
-        selectedImageIds.Add(uuid);
-    }
-
-    public async Task SearchButton()
-    {
-        imageSources = await ReadService.GetImageSource(size, pageNumber, searchText);
-    }
-    
-    public void OnImageClickNavigateTo(string imageUrl)
-    {
-        //http://localhost:5115/api/v1/assets/GetImageByUUID?uuid=008bd3e2-5a4d-4a16-ae8b-f7537bee8642
-        string imageId = imageUrl.Substring(56); //ew
-        Navigation.NavigateTo($"/dam/images/edit?imageId={imageId}");
-    }
-    
-    protected override async Task OnInitializedAsync()
-    {
-        await Task.Delay(250);
-
-        var uri = new Uri(Navigation.Uri);
-        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-
-        if (queryParams.TryGetValue("Page", out var pageNumString))
-            pageNumber = int.Parse(pageNumString);
-
-        imageSources = await ReadService.GetImageSource(size, pageNumber, searchText);
-        allTags = await ReadService.GetTags(); //henter tags 
-        
-        
-    }
-
-    public void NavigateToHome()
-    {
-        Navigation.NavigateTo("/", true);
-    }
-
-    public void NavigateToPage(int pageNum)
-    {
-        Navigation.NavigateTo($"/dam/assets?Page={pageNum}", true);
-    }
-        
-    private bool showTagMenu = false;
-    private List<Tag> allTags = new();
-    private HashSet<string> selectedTags = new(); 
-
-    public void ToggleTagMenu()
-    {
-        showTagMenu = !showTagMenu;
-    }
-
-    public void OnTagFilterChanged(string tag, bool isChecked)
-    {
-        if (isChecked)
-            selectedTags.Add(tag);
-        else
-            selectedTags.Remove(tag);
-    }
-
-    public async void ApplyFilter()
-    {
-        imageSources = await ReadService.GetImagesByTags(selectedTags.ToList());
-        StateHasChanged();
-    }
-}
 

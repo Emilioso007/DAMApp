@@ -1,10 +1,18 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace DAMApp.Models;
 
-public class Tag : IHideable
+public class Tag
 {
-    public Guid UUID { get; set; }
+    [Key] public Guid UUID { get; set; }
     public string Name { get; set; }
-    public bool isAddedByUser { get; set; }
-    public bool IsShown { get; set; } = true;
-}
+    public bool IsAddedByUser { get; set; }
+    
+    
+    // public Tag(string name, bool isAddedByUser)
+    // {
+    //     this.Name = name;
+    //     this.IsAddedByUser = isAddedByUser;
+    // }
 
+}

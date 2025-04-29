@@ -24,23 +24,23 @@ public partial class Edit : ComponentBase
         if (queryParams.TryGetValue("productId", out var id))
             _productId = id;
 
-        _productName = await ReadService.GetProductName(new Guid(_productId));
+        _productName = await ReadService.GetProductName(_productId);
         
-        List<string> imageIds = await ReadService.GetImagesByProduct(_productId); 
-        foreach (string imgId in imageIds)
+        List<string> assetIds = await ReadService.GetAssetsByProduct(_productId); 
+        foreach (string assetId in assetIds)
         {
 	        _productImages.Add(new Models.Image
 	        {
-		        ImageId = imgId
+		        UUID = new Guid(assetId)
 	        });
         }
 
-        List<string> galleryImageIds = await ReadService.GetAllImageUUIDs();
+        List<string> galleryImageIds = await ReadService.GetAllAssetIds();
         foreach (string galleryImageId in galleryImageIds)
         {
 	        _gallery.Add(new Models.Image()
 	        {
-		        ImageId = galleryImageId
+		        UUID = new Guid(galleryImageId)
 	        });
         }
     }
@@ -58,7 +58,7 @@ public partial class Edit : ComponentBase
         // add it to the new index in list 2
         _gallery.Insert(indices.newIndex, item);
 
-        await DeleteService.RemoveImageFromProduct(_productId, _productImages[indices.oldIndex].ImageId);
+        await DeleteService.RemoveAssetFromProduct(_productId, _productImages[indices.oldIndex].UUID.ToString());
         
         // remove the item from the old index in list 1
         _productImages.Remove(_productImages[indices.oldIndex]);
@@ -72,7 +72,7 @@ public partial class Edit : ComponentBase
         // add it to the new index in list 1
         _productImages.Insert(indices.newIndex, item);
         
-        await CreateService.AddImageToProduct(_productId, item.ImageId, indices.newIndex.ToString());
+        await CreateService.AddAssetToProduct(_productId, item.UUID.ToString(), indices.newIndex.ToString());
        // remove the item from the old index in list 2
         _gallery.Remove(_gallery[indices.oldIndex]);
     }
@@ -88,7 +88,7 @@ public partial class Edit : ComponentBase
         // Insert at new position
         _productImages.Insert(indices.newIndex, item);
 
-        await UpdateService.UpdatePriority(_productId, item.ImageId, indices.newIndex);
+        await UpdateService.UpdatePriority(_productId, item.UUID.ToString(), indices.newIndex);
     }
 
     private void GalleryReorder((int oldIndex, int newIndex) indices)

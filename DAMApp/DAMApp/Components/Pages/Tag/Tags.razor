@@ -1,11 +1,8 @@
 @page "/dam/tags"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
-@inject NavigationManager Navigation
 @using DAMApp.Models
 @using DAMApp.Services
-@inject CreateService CreateService
-@inject ReadService ReadService
 
 <style>
     body {
@@ -90,59 +87,4 @@
         }
     </div>
 
-@code {
-    private bool DEBUG = true;
-
-    private string addTagText = "";
-    private string searchText = "";
-    private List<Tag> tags = [];
-
-    public async Task SearchButton()
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task DeleteTag (Guid TagId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task AddTag (string name)
-    {
-        // check if a tag with that name already exists and return early if true
-        if (tags.Any(tag => tag.Name.ToLower() == name.ToLower()))
-        {
-            return;
-        }
-        
-        // check if the name is empty
-        if (string.IsNullOrEmpty(name))
-        {
-            return;
-        }
-        
-        // create a new tag with the name and a new UUID
-        var newTag = new Tag
-        {
-            Name = name,
-            UUID = Guid.NewGuid()
-        };
-        
-        // add the tag to the list and call the upload tag api
-        tags.Add(newTag);
-
-        await CreateService.UploadTag(newTag);
-
-    }
-    
-    protected override async Task OnInitializedAsync()
-    {
-        tags = await ReadService.GetTags();
-    }
-
-    public void NavigateToHome()
-    {
-        Navigation.NavigateTo("/", true);
-    }
-}
 

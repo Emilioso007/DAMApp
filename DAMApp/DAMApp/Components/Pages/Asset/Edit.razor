@@ -1,13 +1,8 @@
-﻿@page "/dam/images/edit"
+﻿@page "/dam/assets/edit"
 @attribute [StreamRendering]
 @rendermode  InteractiveServer
 @using BlazorSortableList
 @using DAMApp.Models
-@using DAMApp.Services
-@inject CreateService CreateService
-@inject ReadService ReadService
-@inject UpdateService UpdateService
-@inject DeleteService DeleteService
 
 <style>
     .gallery {
@@ -42,8 +37,8 @@
 </head>
 
 <section>
-    <h1>Image edit page</h1>
-    <p><strong>Image ID:</strong>@_imageId</p>
+    <h1>Asset edit page</h1>
+    <p><strong>Image ID:</strong>@_assetId</p>
 </section>
 
 <section>
