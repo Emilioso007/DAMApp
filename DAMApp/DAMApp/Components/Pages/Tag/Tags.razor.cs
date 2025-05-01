@@ -20,12 +20,21 @@ public partial class Tags : ComponentBase
 
 	public async Task SearchButton()
 	{
-		throw new NotImplementedException();
+		tags = await ReadService.GetAllTags();
+
+		if (!string.IsNullOrWhiteSpace(searchText))
+		{
+			tags = tags
+				.Where(tag => tag.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+				.ToList();
+		}
 	}
+
 
 	public async Task DeleteTag (Guid TagId)
 	{
-		throw new NotImplementedException();
+		await DeleteService.DeleteTag(TagId.ToString());
+		tags = await ReadService.GetAllTags();
 	}
 
 	public async Task AddTag (string name)
@@ -54,9 +63,9 @@ public partial class Tags : ComponentBase
 		tags = await ReadService.GetAllTags();
 
 	}
-    
 	protected override async Task OnInitializedAsync()
 	{
+    
 		tags = await ReadService.GetAllTags();
 	}
 

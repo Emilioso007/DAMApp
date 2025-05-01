@@ -64,17 +64,17 @@
     
 </style>
 
-<PageTitle>Assets Overview</PageTitle>
+<PageTitle>Tag Overview</PageTitle>
 
     <div style="text-align: left">
         <button @onclick="NavigateToHome">Home</button>
     </div>
     <div>
-        <h1>Assets Gallery</h1>
+        <h1>Tag Gallery</h1>
         <InputText @bind-Value="searchText" placeholder="Search for assets"/>
         <button @onclick="SearchButton">Search</button>
         <InputText @bind-Value="addTagText" placeholder="Give your tag a name"></InputText>
-        <button @onclick="() => AddTag(addTagText)"></button>
+        <button @onclick="() => AddTag(addTagText)">Add</button>
     </div>
 
     <div class="gallery" id="imageGrid">
@@ -82,7 +82,7 @@
         {
             <div class="image-container">
                 <p>@tag.Name</p>
-                <button content="X" @onclick="() => DeleteTag(tag.UUID)"></button>
+                <button @onclick="() => DeleteTag(tag.UUID)">X</button>
             </div>
         }
     </div>
