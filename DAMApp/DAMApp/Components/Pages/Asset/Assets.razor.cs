@@ -12,14 +12,11 @@ public partial class Assets : ComponentBase
 	[Inject] private UpdateService UpdateService { get; set; }
 	[Inject] private DeleteService DeleteService { get; set; }
 	
-	private bool DEBUG = true;
     private bool _isLoaded = false;
-
     private string searchText = "";
     private int size = 20; 
     private int pageNumber = 0;
     private List<string> imageSources = [];
-    private HashSet<string> selectedImageIds = [];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -29,11 +26,6 @@ public partial class Assets : ComponentBase
             _isLoaded = true;
             StateHasChanged();
         }
-    }
-    
-    public void SelectId(string uuid)
-    {
-        selectedImageIds.Add(uuid);
     }
 
     public async Task SearchButton()
