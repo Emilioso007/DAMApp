@@ -8,7 +8,7 @@ public class CreateService
 {
 
 	/// <summary>
-	/// Allows uploading of products with both name an uuid to the database.
+	/// Allows uploading of products with both name and uuid to the database.
 	/// Used for testing purposes at the moment.
 	/// </summary>
 	/// <param name="product"></param>
