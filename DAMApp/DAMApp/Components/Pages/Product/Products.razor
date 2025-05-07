@@ -51,6 +51,12 @@
     </div>
 
     <h1>Product Gallery</h1>
+    
+    <InputText @bind-Value="_newProductName" placeholder="Product name"/>
+    <InputText @bind-Value="_newProductUuid" placeholder="Product uuid"/>
+    <button @onclick="AddNewProduct">Add Product</button>
+
+    
     <!-- Search bar -->
     <input class="form-control" @bind="searchProduct" @bind:event="oninput" placeholder="Search by product name, id or image tag..."/>
 

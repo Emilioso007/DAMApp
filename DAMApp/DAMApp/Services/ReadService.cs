@@ -181,10 +181,14 @@ public class ReadService
 		return response;
 	}
 	
-	// TODO: Implement endpoint for this action
+	/// <summary>
+	/// Returns a product name based on a product id
+	/// </summary>
+	/// <param name="productId"></param>
+	/// <returns></returns>
 	public async Task<string> GetProductName(string productId)
 	{
-		string apiUrl = $"api/v1/assets/getProduct?productId={productId}";
+		string apiUrl = $"api/v1/products/{productId}";
     
 		HttpClientHandler handler = new HttpClientHandler();
 		HttpClient Http = new HttpClient(handler)

@@ -1,5 +1,6 @@
 using DAMApp.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace DAMApp.Components.Pages.Product;
 
@@ -19,6 +20,25 @@ public partial class Products : ComponentBase
     private string searchText = ""; // Holds the search text
     List<Models.Product> products = [];
 
+    private string _newProductName, _newProductUuid;
+
+    private async Task AddNewProduct ()
+    {
+	    try
+	    {
+		    Models.Product product = new Models.Product()
+		    {
+			    Name = _newProductName,
+			    UUID = new Guid(_newProductUuid)
+		    };
+		    await CreateService.UploadProductWithUUID(product);
+	    }
+	    catch (Exception e)
+	    {
+		    Console.WriteLine(e.Message);
+	    }
+    }
+    
     protected override void OnInitialized ()
     {
         base.OnInitialized();

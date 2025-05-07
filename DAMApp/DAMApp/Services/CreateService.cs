@@ -6,6 +6,40 @@ namespace DAMApp.Services;
 
 public class CreateService
 {
+
+	/// <summary>
+	/// Allows uploading of products with both name and uuid to the database.
+	/// Used for testing purposes at the moment.
+	/// </summary>
+	/// <param name="product"></param>
+	public async Task UploadProductWithUUID (Product product)
+	{
+		var payload = new CreateProductRequest()
+		{
+			Name = product.Name,
+			UUID = product.UUID
+		};
+		
+		// Make a new HttpClient
+		using HttpClientHandler handler = new HttpClientHandler();
+		using HttpClient Http = new HttpClient(handler)
+		{
+			BaseAddress = new Uri("http://localhost:5115/")
+		};
+		// Post to the backend via HTTP
+		var response = await Http.PostAsJsonAsync($"api/v1/products/add", payload);
+		
+		if (response.IsSuccessStatusCode)
+		{
+			Console.WriteLine($"Product \"{product.Name}\" uploaded successfully.");
+		}
+		else
+		{
+			var error = await response.Content.ReadAsStringAsync();
+			Console.WriteLine($"Error: {response.StatusCode} - {error}");
+		}
+	}
+	
 	
 	/// <summary>
 	/// Uploads an image to the database via the api.
